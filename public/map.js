@@ -8,7 +8,7 @@ let selectedCoords = null;
 
 const toggleBtn = document.getElementById('toggle-form');
 
-document.getElementById('enter-btn').addEventListener('click', () => {
+document.getElementById('start-btn').addEventListener('click', () => {
   const intro = document.getElementById('instr-screen');
   intro.classList.add('fade-out');
 
@@ -189,3 +189,52 @@ toggleBtn.addEventListener('click', () => {
   const isVisible = formContainer.classList.contains('show');
   isVisible ? hideForm() : showForm();
 });
+
+
+//////////
+// Camera logic
+const openCamBtn = document.getElementById('open-camera');
+const cameraContainer = document.getElementById('camera-container');
+const video = document.getElementById('video');
+const snap = document.getElementById('snap');
+const canvas = document.getElementById('canvas');
+const closeCamBtn = document.getElementById('close-camera');
+
+// Open camera view from info card
+openCamBtn.addEventListener('click', () => {
+  infoCard.style.display = 'none';
+  cameraContainer.classList.remove('hidden');
+
+  navigator.mediaDevices.getUserMedia({ video: true })
+    .then(stream => {
+      video.srcObject = stream;
+    })
+    .catch(err => {
+      alert("Unable to access camera.");
+      console.error(err);
+    });
+});
+
+// Capture image
+snap.addEventListener('click', () => {
+  const context = canvas.getContext('2d');
+  canvas.width = video.videoWidth;
+  canvas.height = video.videoHeight;
+  context.drawImage(video, 0, 0);
+
+  const imgData = canvas.toDataURL('image/png');
+  localStorage.setItem('lichenPhoto', imgData);
+
+  // alert("Photo captured! 🌿"); 
+  window.location.href = 'chat.html';
+});
+
+// Close camera and return to info card
+closeCamBtn.addEventListener('click', () => {
+  cameraContainer.classList.add('hidden');
+  infoCard.style.display = 'block';
+  if (video.srcObject) {
+    video.srcObject.getTracks().forEach(track => track.stop());
+  }
+});
+

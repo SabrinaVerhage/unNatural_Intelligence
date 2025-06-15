@@ -9,13 +9,12 @@
 </head>
 <body>
 
-  <!-- Intro Screen -->
-  <!-- I think this would be the intructions screen instead -->
+  <!-- Instructions Overlay -->
   <div id="instr-screen">
     <div class="instr-content">
-      <h1>unNatural Intelligence</h1>
-      <p>A quiet map of quiet beings...</p>
-      <button id="enter-btn">Enter</button>
+      <h1>Instructions</h1>
+      <p>Step 1 bla bla bla</p>
+      <button id="start-btn">Start</button>
     </div>
   </div>
 
@@ -44,6 +43,7 @@
     </form>
   </div>
 
+  <!-- Info Card Overlay -->
   <div id="info-card" class="hidden">
     <button id="close-info">✕</button>
     <h2 id="info-name"></h2>
@@ -51,6 +51,14 @@
     <div id="info-images"></div>
     <p class="meta" id="info-personality"></p>
     <button id="open-camera">📸 I found it!</button>
+  </div>
+
+  <!-- Camera Overlay -->
+  <div id="camera-container" class="hidden">
+    <video id="video" autoplay playsinline></video>
+    <button id="snap">📷 Capture</button>
+    <canvas id="canvas" style="display: none;"></canvas>
+    <button id="close-camera">← Back</button>
   </div>
 
   <button id="toggle-form">＋</button>

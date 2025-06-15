@@ -5,6 +5,8 @@ body {
   color: #111;
 }
 
+/***************** /*INSTRUCTIONS OVERLAY*/
+
 #instr-screen {
   position: fixed;
   top: 0;
@@ -78,6 +80,8 @@ body {
   transform: translateY(0);
   pointer-events: auto;
 }
+
+/***************** /*INFO CARD OVERLAY*/
 
 #info-card {
   position: absolute;
@@ -180,8 +184,93 @@ body {
 }
 
 
+/***************** /*CAMERA OVERLAY*/
+
+#camera-container {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100vw; height: 100vh;
+  background: black;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  z-index: 999;
+}
+
+#camera-container.hidden {
+  display: none;
+}
+
+#camera-container video {
+  width: 90%;
+  max-height: 70vh;
+  border-radius: 10px;
+}
 
 
+
+/***************** /*CHAT PAGE*/
+
+.chat-container {
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 1em;
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  box-sizing: border-box;
+}
+
+#lichen-photo {
+  width: 100%;
+  border-radius: 12px;
+  margin-bottom: 1em;
+}
+
+#chat-box {
+  flex: 1;
+  overflow-y: auto;
+  background: #f2f2f2;
+  padding: 1em;
+  border-radius: 10px;
+  margin-bottom: 1em;
+}
+
+.message {
+  padding: 0.5em 1em;
+  margin: 0.5em 0;
+  border-radius: 10px;
+  max-width: 85%;
+  word-wrap: break-word;
+}
+
+.message.lichen {
+  background: #e0ffe0;
+  align-self: flex-start;
+}
+
+.message.user {
+  background: #d0e8ff;
+  align-self: flex-end;
+}
+
+#chat-form {
+  display: flex;
+  gap: 0.5em;
+  align-items: center;
+}
+
+#user-input {
+  flex: 1;
+  padding: 0.5em;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+}
+
+
+
+/***************** /*ADMIN PAGE STUFF*/
 
 .admin-entry {
   background: #f9f9f9;

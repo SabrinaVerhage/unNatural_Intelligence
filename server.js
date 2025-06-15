@@ -1,8 +1,11 @@
+require('dotenv').config();
+
 const express = require('express');
 const path = require('path');
 const Dirty = require('dirty');
 const app = express();
 const PORT = process.env.PORT || 3000;
+
 
 // Serve static files
 app.use(express.static(path.join(__dirname, 'public')));
@@ -80,6 +83,45 @@ app.put('/api/locations/:id', (req, res) => {
   db.set(id, updated);
   res.json({ success: true });
 });
+
+
+
+// API route to handle OpenAI stufffs
+const OpenAI = require('openai');
+
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY
+});
+
+app.post('/api/chat', async (req, res) => {
+  const { messages } = req.body;
+
+  if (!messages || !Array.isArray(messages)) {
+    return res.status(400).json({ error: 'Missing messages array' });
+  }
+
+  try {
+    const completion = await openai.chat.completions.create({
+      model: 'gpt-4',
+      messages: [
+        { role: 'system', content: 'You are a poetic, gentle lichen who responds slowly and reflectively.' },
+        ...messages
+      ]
+    });
+
+    // console.log("OpenAI raw completion:", completion);
+    console.log("Message object:", completion.choices[0].message);
+    
+    const reply = completion.choices[0].message.content;
+    res.json({ reply });
+
+  } catch (err) {
+    console.error('OpenAI error:', err.response?.data || err.message);
+    res.status(500).json({ error: 'OpenAI request failed' });
+  }
+});
+
+
 
 
 // Serve main page
