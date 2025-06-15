@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>unNatural Intelligence</title>
+  <link href="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.css" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css">
+
+</head>
+<body>
+
+  <!-- Intro Screen -->
+  <!-- I think this would be the intructions screen instead -->
+  <div id="instr-screen">
+    <div class="instr-content">
+      <h1>unNatural Intelligence</h1>
+      <p>A quiet map of quiet beings...</p>
+      <button id="enter-btn">Enter</button>
+    </div>
+  </div>
+
+  <!-- Map View -->
+  <h1>unNatural Intelligence</h1>
+  <div id="map"></div>
+
+  <div id="form-container">
+    <form id="location-form">
+      <label>
+        <input type="text" id="name" placeholder="Name of Lichen" required />
+      </label>
+      <label>
+        <input type="text" id="desc" placeholder="Location Description" />
+      </label>
+      <label>
+        <input type="text" id="locImg" placeholder="Location Image URL" />
+      </label>
+      <label>
+        <input type="text" id="lichImg" placeholder="Lichen Image URL" />
+      </label>
+      <label>
+        <input type="text" id="coords" placeholder="Tap the map..." readonly />
+      </label>
+      <button type="submit">➕ Save Point</button>
+    </form>
+  </div>
+
+  <div id="info-card" class="hidden">
+    <button id="close-info">✕</button>
+    <h2 id="info-name"></h2>
+    <p id="info-desc"></p>
+    <div id="info-images"></div>
+    <p class="meta" id="info-personality"></p>
+    <button id="open-camera">📸 I found it!</button>
+  </div>
+
+  <button id="toggle-form">＋</button>
+
+  <script src="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.js"></script>
+  <script src="map.js"></script>
+</body>
+</html>

@@ -1,0 +1,31 @@
+{"key":"amsterdam","val":{"name":"Amsterdam Center","coordinates":[4.89,52.37],"message":"The heart of Amsterdam"}}
+{"key":"westerpark","val":{"name":"Westerpark","coordinates":[4.872,52.386],"message":"A place to wander and wonder"}}
+{"key":"noord","val":{"name":"Amsterdam Noord","coordinates":[4.916,52.41],"message":"Cross the IJ to find new dimensions"}}
+{"key":"korstmos1","val":{"name":"KORSTMOS1","coordinates":[4.868795825137397,52.35777531071102],"message":"test123"}}
+{"key":"korstmos2","val":{"name":"KORSTMOS2","coordinates":[4.8687800982185365,52.35766403265927],"message":"test123"}}
+{"key":"korstmos1"}
+{"key":"korstmos2"}
+{"key":"korstmos1","val":{"name":"KORSTMOS1","coordinates":[4.868801962681744,52.35778687035764],"message":"test123"}}
+{"key":"korstmos2","val":{"name":"KORSTMOS2","coordinates":[4.8687887731186095,52.35764552869051],"message":"test123"}}
+{"key":"boom_korstmos","val":{"name":"Boom Korstmos","coordinates":[4.94336865219239,52.37762109592424],"message":"Bla"}}
+{"key":"testtt","val":{"name":"testtt","coordinates":[4.880429517590926,52.3612468992512],"locationDescription":"etest","locationImage":"test","lichenImage":"test","personality":"Unknown for now","conversationHistory":[]}}
+{"key":"testtt4","val":{"name":"testtt4","coordinates":[4.879148749579883,52.36082517321873],"locationDescription":"etest","locationImage":"test","lichenImage":"test","personality":"Unknown for now","conversationHistory":[]}}
+{"key":"korstmos10","val":{"name":"KORSTMOS10","coordinates":[4.883015663939375,52.36409499508363],"locationDescription":"test","locationImage":"test","lichenImage":"test","personality":"Unknown for now","conversationHistory":[]}}
+{"key":"korstmos10"}
+{"key":"testtt4"}
+{"key":"testtt"}
+{"key":"westerpark"}
+{"key":"amsterdam_noord"}
+{"key":"boom_korstmos"}
+{"key":"korstmos2"}
+{"key":"korstmos10","val":{"name":"KORSTMOS10","coordinates":[4.880771048376062,52.36130903992793],"locationDescription":"test","locationImage":"test","lichenImage":"test","personality":"Unknown for now","conversationHistory":[]}}
+{"key":"korstmos10","val":{"name":"KORSTMOS10","coordinates":[4.880771048376062,52.36130903992793],"locationDescription":"test","locationImage":"image/001.png","lichenImage":"image/003.png","personality":"Unknown for now","conversationHistory":[]}}
+{"key":"korstmos1","val":{"name":"KORSTMOS1","coordinates":[4.868801962681744,52.35778687035764],"message":"test123","locationDescription":"test","locationImage":"image/001.png","lichenImage":"image/003.png"}}
+{"key":"noord","val":{"name":"Amsterdam Noord","coordinates":[4.916,52.41],"message":"Cross the IJ to find new dimensions","locationDescription":"test","locationImage":"image/001.png","lichenImage":"image/001.png"}}
+{"key":"amsterdam","val":{"name":"Amsterdam Center","coordinates":[4.89,52.37],"message":"The heart of Amsterdam","locationDescription":"test","locationImage":"image/001.png","lichenImage":"image/001.png"}}
+{"key":"amsterdam","val":{"name":"Amsterdam Center","coordinates":[4.89,52.37],"message":"The heart of Amsterdam","locationDescription":"test","locationImage":"images/001.png","lichenImage":"images/001.png"}}
+{"key":"noord","val":{"name":"Amsterdam Noord","coordinates":[4.916,52.41],"message":"Cross the IJ to find new dimensions","locationDescription":"test","locationImage":"images/001.png","lichenImage":"images/001.png"}}
+{"key":"korstmos1","val":{"name":"KORSTMOS1","coordinates":[4.868801962681744,52.35778687035764],"message":"test123","locationDescription":"test","locationImage":"images/001.png","lichenImage":"images/003.png"}}
+{"key":"korstmos10","val":{"name":"KORSTMOS10","coordinates":[4.880771048376062,52.36130903992793],"locationDescription":"test","locationImage":"images/001.png","lichenImage":"images/003.png","personality":"Unknown for now","conversationHistory":[]}}
+{"key":"bla","val":{"name":"bla","coordinates":[4.879732672921648,52.361008142217486],"locationDescription":"test","locationImage":"images/003.png","lichenImage":"images/003.png","personality":"Unknown for now","conversationHistory":[]}}
+{"key":"blaaaa","val":{"name":"blaaaa","coordinates":[4.8781851890724965,52.360641439981805],"locationDescription":"test","locationImage":"images/003.png","lichenImage":"images/003.png","personality":"Unknown for now","conversationHistory":[]}}
