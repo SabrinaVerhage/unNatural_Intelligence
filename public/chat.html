@@ -3,20 +3,28 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Talk with the Lichen</title>
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
   <div class="chat-container">
-    <img id="lichen-photo" alt="Your Lichen" />
-    <div id="chat-box"></div>
+    <div class="photo-header">
+      <button class="back-button">←</button>
+      <img id="lichen-photo" alt="Your Lichen" />
+    </div>
+    
+    <div class="chat-body">
+      <div id="chat-box" class="chat-box"></div>
 
-    <form id="chat-form">
-      <input type="text" id="user-input" placeholder="How are you feeling today?" required />
-      <button type="submit">Send</button>
-    </form>
+      <form id="chat-form">
+        <div class="input-wrapper">
+          <input type="text" id="user-input" placeholder="How are you feeling today?" required />
+          <button type="submit" id="send-button">➤</button>
+        </div>
+      </form>
+    </div>
   </div>
 
   <script src="chat.js"></script>

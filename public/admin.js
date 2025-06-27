@@ -21,6 +21,7 @@ fetch('/api/debug/all')
       // `;
 
       div.innerHTML = `
+        <p><strong>ID:</strong> <code>${entry.id}</code></p>
         <label>Name: <input type="text" value="${entry.name}" class="edit-name"></label><br>
         <label>Description: <input type="text" value="${entry.locationDescription || ''}" class="edit-desc"></label><br>
         <label>Location Image URL: <input type="text" value="${entry.locationImage || ''}" class="edit-locimg"></label><br>

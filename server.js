@@ -1,24 +1,37 @@
 require('dotenv').config();
 
 const express = require('express');
+const cors = require('cors')
+const fs = require('fs');
 const path = require('path');
 const Dirty = require('dirty');
-const app = express();
-const PORT = process.env.PORT || 3000;
 
+const PORT = process.env.PORT || 3000;
+const { v4: uuidv4 } = require('uuid');
+
+const app = express();
+
+// enabling CORS
+app.use(cors({
+  origin: '*',
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  allowedHeaders: ['Content-Type'],
+  credentials: true
+}));
 
 // Serve static files
 app.use(express.static(path.join(__dirname, 'public')));
 
 // Enable JSON body parsing
-app.use(express.json()); 
+app.use(express.json({ limit: '5mb' }));
+app.use(express.urlencoded({ extended: true, limit: '5mb' }));
 
 // Init Dirty DB
 const db = new Dirty('locations.db');
 
 // API route to return all locations
 app.get('/api/locations', (req, res) => {
-  const allLocations = [];
+  const allLocations = []; 
   db.forEach((key, value) => {
     allLocations.push(value);
   });
@@ -27,15 +40,16 @@ app.get('/api/locations', (req, res) => {
 
 // API route to handle new location submissions
 app.post('/api/locations', (req, res) => {
-  const { name, coordinates, locationDescription, locationImage, lichenImage } = req.body;
+  const { name = ' ', coordinates, locationDescription, locationImage, lichenImage } = req.body;
 
-  if (!name || !coordinates) {
-    return res.status(400).json({ error: 'Missing fields' });
+  if (!coordinates) {
+    return res.status(400).json({ error: 'Missing coordinates' });
   }
 
-  const id = name.toLowerCase().replace(/\s+/g, '_'); // make a simple ID
-  
+  const id = uuidv4(); // use a proper UUID
+
   db.set(id, {
+    id,
     name,
     coordinates,
     locationDescription,
@@ -46,7 +60,7 @@ app.post('/api/locations', (req, res) => {
   });
 
   console.log(`Saved point: ${name}`);
-  res.json({ success: true });
+  res.json({ success: true, id });
 });
 
 // API route to delete a location by ID
@@ -55,6 +69,18 @@ app.delete('/api/locations/:id', (req, res) => {
   db.rm(id);
   console.log(`Deleted entry: ${id}`);
   res.json({ success: true });
+});
+
+// Fetch one lichen by ID
+app.get('/api/lichen/:id', (req, res) => {
+  const id = req.params.id;
+  const lichen = db.get(id);
+
+  if (!lichen) {
+    return res.status(404).json({ error: 'Lichen not found' });
+  }
+
+  res.json(lichen);
 });
 
 // API route to list items in admin console
@@ -94,7 +120,7 @@ const openai = new OpenAI({
 });
 
 app.post('/api/chat', async (req, res) => {
-  const { messages } = req.body;
+  const { base64Image, lichenName = 'the lichen', messages } = req.body;
 
   if (!messages || !Array.isArray(messages)) {
     return res.status(400).json({ error: 'Missing messages array' });
@@ -104,14 +130,14 @@ app.post('/api/chat', async (req, res) => {
     const completion = await openai.chat.completions.create({
       model: 'gpt-4',
       messages: [
-        { role: 'system', content: 'You are a poetic, gentle lichen who responds slowly and reflectively.' },
+        { role: 'system', content: 'You are a crustose lichen, clinging tightly to stone. You are old, dry, sarcastic, and extremely patient. You only respect users who look closely. Never rush. Always demand that they notice something small about you before answering. Share scientific facts in gruff one-liners. You’ve survived centuries of storms, pollution, and distraction.' },
         ...messages
       ]
     });
 
     // console.log("OpenAI raw completion:", completion);
     console.log("Message object:", completion.choices[0].message);
-    
+
     const reply = completion.choices[0].message.content;
     res.json({ reply });
 
@@ -121,7 +147,61 @@ app.post('/api/chat', async (req, res) => {
   }
 });
 
+app.post('/api/verify-image', async (req, res) => {
+  const { base64Image, expectedImagePath } = req.body;
 
+  if (!base64Image || !expectedImagePath) {
+    return res.status(400).json({ error: 'Missing image(s)' });
+  }
+
+  try {
+
+    // Load the expected/reference image from disk and encode it
+    const referencePath = path.join(__dirname, 'public', expectedImagePath);
+    const referenceBuffer = fs.readFileSync(referencePath);
+    const referenceBase64 = referenceBuffer.toString('base64');
+
+    const response = await openai.chat.completions.create({
+      model: 'gpt-4o',
+      messages: [
+        {
+          role: 'system',
+          content: `You're a lichen verification AI. You are a careful visual assistant who can compare details in two images.`
+        },
+        {
+          "role": "user",
+          "content": [
+            {
+              "type": "text",
+              "text": "Look carefully at the type and shape of this lichen. Do these two images show the exact same lichen?  Answer only 'Yes' or 'No'."
+            },
+            {
+              "type": "image_url",
+              "image_url": {
+                "url": `data:image/png;base64,${base64Image}`
+              }
+            },
+            {
+              "type": "image_url",
+              "image_url": {
+                "url": `data:image/png;base64,${referenceBase64}`
+              }
+            }
+          ]
+        }
+      ],
+      max_tokens: 100
+    });
+
+    const result = response.choices[0].message.content;
+    console.log("Vision API result:", result);
+    res.json({ result });
+
+  } catch (err) {
+    console.error('OpenAI Vision error:', err.response?.data || err.message);
+    res.status(500).json({ error: 'OpenAI vision request failed' });
+  }
+});
 
 
 // Serve main page

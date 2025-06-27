@@ -1,7 +1,8 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>unNatural Intelligence</title>
   <link href="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.css" rel="stylesheet" />
   <link rel="stylesheet" href="style.css">
@@ -11,10 +12,33 @@
 
   <!-- Instructions Overlay -->
   <div id="instr-screen">
-    <div class="instr-content">
-      <h1>Instructions</h1>
-      <p>Step 1 bla bla bla</p>
-      <button id="start-btn">Start</button>
+    <button id="instr-close">✕</button>
+    <div class="instr-wrapper">
+      <h1>How to experience</h1>
+
+      <div class="instr-step step-1">
+        <h2>Step 1</h2>
+        <img src="images/step1.png" alt="Step 1 illustration" />
+        <p><strong>1. Explore the map of (un)natural intelligences</strong><br/>
+        The map shows a database of (un)naturally intelligent lichen</p>
+      </div>
+
+      <div class="instr-step step-2">
+        <h2>Step 2</h2>
+        <img src="images/step2.png" alt="Step 2 illustration" />
+        <p><strong>2. Getting to know lichens</strong><br/>
+        Explore and get to know all the lichen on the map</p>
+      </div>
+
+      <div class="instr-step step-3">
+        <h2>Step 3</h2>
+        <img src="images/step3.png" alt="Step 3 illustration" />
+        <p><strong>3. Connect with one</strong><br/>
+        Once you find one, you can talk to it and learn from it</p>
+      </div>
+
+      <!-- <button id="start-btn">Start exploring</button> -->
+      <div id="instr-back">BACK TO<br/>MAP</div>
     </div>
   </div>
 
@@ -22,46 +46,78 @@
   <h1>unNatural Intelligence</h1>
   <div id="map"></div>
 
+  <!-- New Entry Form -->
   <div id="form-container">
     <form id="location-form">
+      <h2>Create</h2>
+      <p class="subhead">Create a new<br>(un)natural intelligence</p>
+
       <label>
-        <input type="text" id="name" placeholder="Name of Lichen" required />
+        <input type="text" id="coordsDisplay" placeholder="Tap on the map to set location" readonly />
+        <input type="hidden" id="coords" />
       </label>
       <label>
-        <input type="text" id="desc" placeholder="Location Description" />
+        <input type="text" id="desc" placeholder="Describe in detail where exactly one can see this lichen." />
       </label>
       <label>
-        <input type="text" id="locImg" placeholder="Location Image URL" />
+        <input type="text" id="locImg" placeholder="Upload an overview photo of the lichen" />
       </label>
       <label>
-        <input type="text" id="lichImg" placeholder="Lichen Image URL" />
+        <input type="text" id="lichImg" placeholder="Upload a close-up of the lichen" />
       </label>
-      <label>
-        <input type="text" id="coords" placeholder="Tap the map..." readonly />
-      </label>
+
       <button type="submit">➕ Save Point</button>
     </form>
   </div>
 
+  <!-- Top UI Buttons -->
+  <div id="top-ui">
+    <button id="add-btn">＋</button>
+    <div class="top-buttons">
+      <button id="help-btn">instructions</button>
+      <button id="gallery-btn">your (un)natural intelligence</button>
+    </div>
+  </div>
+
   <!-- Info Card Overlay -->
-  <div id="info-card" class="hidden">
-    <button id="close-info">✕</button>
-    <h2 id="info-name"></h2>
-    <p id="info-desc"></p>
-    <div id="info-images"></div>
-    <p class="meta" id="info-personality"></p>
-    <button id="open-camera">📸 I found it!</button>
+  <div id="info-card" class="collapsed hidden">
+    <div class="info-image-wrapper">
+      <button id="close-info">✕</button>
+      <img id="info-image" />
+      <button id="toggle-info">more info...</button>
+    </div>
+
+    <div class="info-layout">
+      <div class="info-text">
+        <h2 id="info-name"></h2>
+        <p id="info-desc"></p>
+        <p class="meta" id="info-personality"></p>
+      </div>
+      <button id="found-button">FOUND<br/>YOU!</button>
+    </div>
   </div>
 
   <!-- Camera Overlay -->
   <div id="camera-container" class="hidden">
     <video id="video" autoplay playsinline></video>
-    <button id="snap">📷 Capture</button>
+
+    <div id="camera-bottom">
+      <p id="camera-label">Align your lichen and tap to capture</p>
+      <button id="snap">📷 Capture</button>
+    </div>
+
     <canvas id="canvas" style="display: none;"></canvas>
-    <button id="close-camera">← Back</button>
+    <div id="confirmation-buttons" class="hidden">
+      <button id="confirm-photo">✅ Continue</button>
+      <button id="retake-photo">🔄 Retake</button>
+    </div>
+    <button id="close-camera">←</button>
   </div>
 
-  <button id="toggle-form">＋</button>
+  <div id="thinking-overlay" class="hidden">
+    <p>...searching for signs of<br/>(un)natural intelligence</p>
+  </div>
+
 
   <script src="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.js"></script>
   <script src="map.js"></script>
