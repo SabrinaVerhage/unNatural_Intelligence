@@ -49,7 +49,7 @@ closeBtn.addEventListener('click', closeInstructions);
 function showInfoCard(data) {
   infoName.textContent = data.name || '';
   infoDesc.textContent = data.locationDescription || '';
-  infoPersonality.textContent = data.personality || '';
+  // infoPersonality.textContent = data.personality || '';
   infoImage.src = data.lichenImage || '';
 
   infoCard.classList.remove('hidden', 'expanded');
@@ -372,7 +372,7 @@ snap.addEventListener('click', () => {
 
 });
 
-confirmBtn.addEventListener('click', () => {
+confirmBtn.addEventListener('click', async () => {
   thinkingOverlay.classList.remove('hidden');
 
   if (!imgData) {
@@ -380,35 +380,80 @@ confirmBtn.addEventListener('click', () => {
     return;
   }
 
-  // Now send to OpenAI Vision API
-  fetch('/api/verify-image', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      base64Image: imgData.replace(/^data:image\/png;base64,/, ''),
-      expectedImagePath: 'images/lichen01.png'
-    })
-  })
-    .then(res => res.json())
-    .then(data => {
-      thinkingOverlay.classList.add('hidden');
+  const lichenId = localStorage.getItem('selectedLichenID');
+  if (!lichenId) {
+    alert("No lichen selected!");
+    return;
+  }
 
-      const result = data.result.trim().toLowerCase();
+  try {
+    // 👉 Fetch lichen data by ID from your database
+    const lichenRes = await fetch(`/api/lichen/${lichenId}`);
+    const lichenData = await lichenRes.json();
 
-      if (result.startsWith("yes")) {
-        // 🎉 Confirmed match, go to chat
-        window.location.href = 'chat.html';
-      } else {
-        // ❌ Not a match
-        alert("Hmm... this doesn't look like me. Try again?");
-        retakeBtn.click(); // Optional: automatically offer retake
-      }
+    if (!lichenData.lichenImage) {
+      throw new Error("Lichen image not found in database.");
+    }
 
-    })
-    .catch(err => {
-      console.error("Verification failed:", err);
-      alert("Something went wrong. Try again?");
+    // ✅ Now send user-taken photo + expected image from DB
+    const verifyRes = await fetch('/api/verify-image', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        base64Image: imgData.replace(/^data:image\/png;base64,/, ''),
+        expectedImagePath: lichenData.lichenImage
+      })
     });
+
+    const data = await verifyRes.json();
+    thinkingOverlay.classList.add('hidden');
+
+    const result = data.result.trim().toLowerCase();
+
+    if (result.startsWith("yes")) {
+      // 🎉 Confirmed match
+      window.location.href = 'chat.html';
+    } else {
+      // ❌ Not a match
+      alert("Hmm... this doesn't look like me. Try again?");
+      retakeBtn.click();
+    }
+
+  } catch (err) {
+    console.error("Verification failed:", err);
+    thinkingOverlay.classList.add('hidden');
+    alert("Something went wrong. Try again?");
+  }
+
+  // older below
+  // fetch('/api/verify-image', {
+  //   method: 'POST',
+  //   headers: { 'Content-Type': 'application/json' },
+  //   body: JSON.stringify({
+  //     base64Image: imgData.replace(/^data:image\/png;base64,/, ''),
+  //     expectedImagePath: 'images/lichen01.png'
+  //   })
+  // })
+  //   .then(res => res.json())
+  //   .then(data => {
+  //     thinkingOverlay.classList.add('hidden');
+
+  //     const result = data.result.trim().toLowerCase();
+
+  //     if (result.startsWith("yes")) {
+  //       // 🎉 Confirmed match, go to chat
+  //       window.location.href = 'chat.html';
+  //     } else {
+  //       // ❌ Not a match
+  //       alert("Hmm... this doesn't look like me. Try again?");
+  //       retakeBtn.click(); // Optional: automatically offer retake
+  //     }
+
+  //   })
+  //   .catch(err => {
+  //     console.error("Verification failed:", err);
+  //     alert("Something went wrong. Try again?");
+  //   });
 });
 
 retakeBtn.addEventListener('click', () => {

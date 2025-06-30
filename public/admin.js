@@ -1,3 +1,11 @@
+document.querySelectorAll('textarea').forEach(el => {
+  el.setAttribute('style', 'height:' + (el.scrollHeight) + 'px;overflow-y:hidden;');
+  el.addEventListener('input', e => {
+    e.target.style.height = 'auto';
+    e.target.style.height = (e.target.scrollHeight) + 'px';
+  });
+});
+
 // Fetch all stored entries
 fetch('/api/debug/all')
   .then(res => res.json())
@@ -8,45 +16,51 @@ fetch('/api/debug/all')
       const div = document.createElement('div');
       div.className = 'admin-entry';
 
-      // div.innerHTML = `
-      //   <h3>${entry.name}</h3>
-      //   <p><strong>Coords:</strong> ${entry.coordinates.join(', ')}</p>
-      //   <p><strong>Description:</strong> ${entry.locationDescription || ''}</p>
-      //   <p><strong>Images:</strong><br>
-      //     ${entry.locationImage ? `<img src="${entry.locationImage}" height="60">` : ''}
-      //     ${entry.lichenImage ? `<img src="${entry.lichenImage}" height="60">` : ''}
-      //   </p>
-      //   <button data-id="${entry.name.toLowerCase().replace(/\s+/g, '_')}">🗑 Delete</button>
-      //   <hr>
-      // `;
-
       div.innerHTML = `
         <p><strong>ID:</strong> <code>${entry.id}</code></p>
-        <label>Name: <input type="text" value="${entry.name}" class="edit-name"></label><br>
-        <label>Description: <input type="text" value="${entry.locationDescription || ''}" class="edit-desc"></label><br>
-        <label>Location Image URL: <input type="text" value="${entry.locationImage || ''}" class="edit-locimg"></label><br>
-        <label>Lichen Image URL: <input type="text" value="${entry.lichenImage || ''}" class="edit-lichimg"></label><br>
-        <button class="save-btn" data-id="${entry.id}">💾 Save</button>
-        <button class="delete-btn" data-id="${entry.id}">🗑 Delete</button>
-        <hr>
+
+        <div class="admin-field">
+          <label>Name: <input type="text" value="${entry.name}" class="edit-name"></label>
+        </div>
+
+        <div class="admin-field">
+          <label>Description: 
+            <textarea class="edit-desc">${entry.locationDescription || ''}</textarea>
+          </label>
+        </div>
+
+        <div class="admin-field">
+          <label>Location Image URL: <input type="text" value="${entry.locationImage || ''}" class="edit-locimg"></label>
+        </div>
+
+        <div class="admin-field">
+          <label>Lichen Image URL: <input type="text" value="${entry.lichenImage || ''}" class="edit-lichimg"></label>
+        </div>
+
+        <div class="image-row">
+          ${entry.locationImage ? `<img src="${entry.locationImage}" class="admin-thumb">` : ''}
+          ${entry.lichenImage ? `<img src="${entry.lichenImage}" class="admin-thumb">` : ''}
+        </div>
+
+        <div class="admin-field">
+          <label>Personality:<br>
+            <textarea class="edit-personality">${entry.personality || ''}</textarea>
+          </label>
+        </div>
+
+        <div class="admin-buttons">
+          <button class="save-btn" data-id="${entry.id}">💾 Save</button>
+          <button class="delete-btn" data-id="${entry.id}">🗑 Delete</button>
+        </div>
       `;
 
       container.appendChild(div);
     });
 
-    // // Add delete functionality
-    // container.addEventListener('click', e => {
-    //   if (e.target.tagName === 'BUTTON') {
-    //     const id = e.target.getAttribute('data-id');
-    //     console.log("Attempting to delete:", id); // ← Check if this logs
-    //     fetch(`/api/locations/${id}`, { method: 'DELETE' })
-    //       .then(() => location.reload());
-    //   }
-    // });
-
     // Editing functionality
     container.addEventListener('click', e => {
       const id = e.target.getAttribute('data-id');
+      const card = e.target.closest('.admin-entry');
 
       if (e.target.classList.contains('delete-btn')) {
         fetch(`/api/locations/${id}`, { method: 'DELETE' })
@@ -54,21 +68,55 @@ fetch('/api/debug/all')
       }
 
       if (e.target.classList.contains('save-btn')) {
-        const card = e.target.parentElement;
-        const name = card.querySelector('.edit-name').value.trim();
-        const description = card.querySelector('.edit-desc').value.trim();
-        const locationImage = card.querySelector('.edit-locimg').value.trim();
-        const lichenImage = card.querySelector('.edit-lichimg').value.trim();
+        const nameInput = card.querySelector('.edit-name');
+        const descInput = card.querySelector('.edit-desc');
+        const locImgInput = card.querySelector('.edit-locimg');
+        const lichImgInput = card.querySelector('.edit-lichimg');
+        const personalityInput = card.querySelector('.edit-personality');
+
+        if (!nameInput || !descInput || !locImgInput || !lichImgInput || !personalityInput) {
+          alert("One or more fields are missing in this entry.");
+          return;
+        }
+
+        const name = nameInput.value.trim();
+        const description = descInput.value.trim();
+        const locationImage = locImgInput.value.trim();
+        const lichenImage = lichImgInput.value.trim();
+        const personality = personalityInput.value.trim();
 
         fetch(`/api/locations/${id}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ name, locationDescription: description, locationImage, lichenImage })
+          body: JSON.stringify({
+            name,
+            locationDescription: description,
+            locationImage,
+            lichenImage,
+            personality
+          })
         }).then(() => {
           alert("Updated!");
-          location.reload(); // or re-fetch dynamically
+          // location.reload();
+        }).catch(err => {
+          alert("Failed to update: " + err.message);
         });
       }
     });
 
   });
+
+document.getElementById('download-data').addEventListener('click', () => {
+  fetch('/api/debug/all')
+    .then(res => res.json())
+    .then(data => {
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'lichen-data.json';
+      a.click();
+      URL.revokeObjectURL(url);
+    });
+});
+

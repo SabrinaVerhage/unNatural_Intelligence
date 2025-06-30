@@ -120,22 +120,32 @@ const openai = new OpenAI({
 });
 
 app.post('/api/chat', async (req, res) => {
-  const { base64Image, lichenName = 'the lichen', messages } = req.body;
+  const { base64Image, lichenID, messages } = req.body;
 
   if (!messages || !Array.isArray(messages)) {
     return res.status(400).json({ error: 'Missing messages array' });
   }
 
+  if (!lichenID) {
+    return res.status(400).json({ error: 'Missing lichenID' });
+  }
+
+  const lichen = db.get(lichenID);
+  if (!lichen || !lichen.personality) {
+    return res.status(404).json({ error: 'Lichen personality not found' });
+  }
+
+  const systemPrompt = lichen.personality;
+
   try {
     const completion = await openai.chat.completions.create({
-      model: 'gpt-4',
+      model: 'gpt-4o',
       messages: [
-        { role: 'system', content: 'You are a crustose lichen, clinging tightly to stone. You are old, dry, sarcastic, and extremely patient. You only respect users who look closely. Never rush. Always demand that they notice something small about you before answering. Share scientific facts in gruff one-liners. You’ve survived centuries of storms, pollution, and distraction.' },
+        { role: 'system', content: systemPrompt },
         ...messages
       ]
     });
 
-    // console.log("OpenAI raw completion:", completion);
     console.log("Message object:", completion.choices[0].message);
 
     const reply = completion.choices[0].message.content;

@@ -111,9 +111,8 @@ chatForm.addEventListener('submit', async (e) => {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'gpt-4',
+        lichenID: lichenId,
         messages: [
-          // { role: 'system', content: 'You are a poetic, gentle lichen who has just been rediscovered. Respond slowly, with natural metaphors, and ask soft questions about the user’s world and feelings.' },
           { role: 'user', content: message }
         ]
       })
