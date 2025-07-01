@@ -1,0 +1,5 @@
+#!/usr/bin/env sh
+
+for x in * ; do
+    scp -r "$x" "root@unnatural-intelligence.com:app/unNatural_Intelligence/$x"
+done
