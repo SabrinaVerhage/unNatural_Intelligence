@@ -22,10 +22,10 @@ if (!sessionId) {
   localStorage.setItem('lichenSessionId', sessionId);
 }
 
-// Fetch full lichen data
-fetch(`/api/lichen/${lichenId}`)
-  .then(res => res.json())
-  .then(data => {
+async function initChat() {
+  try {
+    const res = await fetch(`/api/lichen/${lichenId}`);
+    const data = await res.json();
     console.log("Loaded lichen data:", data);
 
     // Set lichen image
@@ -37,17 +37,35 @@ fetch(`/api/lichen/${lichenId}`)
 
     showTypingBubble();
 
+    // Send a silent starter message to the lichen
+    const response = await fetch('/api/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        lichenID: lichenId,
+        messages: [
+          { role: 'user', content: "Hi there, nice to meet you." }
+        ]
+      })
+    });
+
+    const chatData = await response.json();
+    const reply = chatData.reply;
+
     setTimeout(() => {
       removeTypingBubble();
-      showMessage(`Ah… ${data.name || "friend"}, I'm glad you returned. I remember the shape of your shadow.`);
-    }, 4000); // 1.5 intro animation
+      showMessage(reply, 'lichen');
+    }, 4000);
 
-    // showMessage(`Ah… ${data.name || "friend"}, I'm glad you returned. I remember the shape of your shadow.`);
-  })
-  .catch(err => {
-    console.error("Failed to load lichen info:", err);
+  } catch (err) {
+    console.error("Initialization error:", err);
+    removeTypingBubble();
     showMessage("I seem to be fading… try finding me again.");
-  });
+  }
+}
+
+initChat();
+
 
 function startIntroAnimation(imageUrl) {
   const introImage = document.createElement('img');

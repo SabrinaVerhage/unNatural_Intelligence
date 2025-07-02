@@ -3,7 +3,7 @@ mapboxgl.accessToken = 'pk.eyJ1Ijoic3J2ZXJoYWdlIiwiYSI6ImNtYnMzNm9qdzAybjUyanNlM
 
 
 //SETUP --- DECLARING VARIABLES 
-let appMode = 'view'; // or 'new'
+let appMode = 'view'; // or 'new' or 'gallery'
 let selectedCoords = null;
 let currentActiveMarker = null;
 
@@ -11,6 +11,7 @@ const instrScreen = document.getElementById('instr-screen');
 const backToMap = document.getElementById('instr-back');
 const closeBtn = document.getElementById('instr-close');
 const helpBtn = document.getElementById('help-btn');
+const galleryBtn = document.getElementById('gallery-btn');
 const toggleBtn = document.getElementById('toggle-info');
 const image = document.getElementById('info-image');
 
@@ -318,6 +319,25 @@ function hideForm() {
   appMode = 'view'; // ✨ back to view mode
 }
 
+
+//////////
+// Gallery logic
+const galleryTitle = document.getElementById('gallery-title');
+const exitGallery = document.getElementById('exit-gallery');
+
+galleryBtn.addEventListener('click', () => {
+  document.body.classList.add('gallery-mode');
+  galleryTitle.classList.remove('hidden');
+  exitGallery.classList.remove('hidden');
+  appMode = 'gallery'; 
+});
+
+exitGallery.addEventListener('click', () => {
+  document.body.classList.remove('gallery-mode');
+  galleryTitle.classList.add('hidden');
+  exitGallery.classList.add('hidden');
+  appMode = 'view'; 
+});
 
 
 //////////
