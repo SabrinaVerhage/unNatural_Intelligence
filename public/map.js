@@ -6,6 +6,7 @@ mapboxgl.accessToken = 'pk.eyJ1Ijoic3J2ZXJoYWdlIiwiYSI6ImNtYnMzNm9qdzAybjUyanNlM
 let appMode = 'view'; // or 'new' or 'gallery'
 let selectedCoords = null;
 let currentActiveMarker = null;
+let userMarker = null;
 
 const instrScreen = document.getElementById('instr-screen');
 const backToMap = document.getElementById('instr-back');
@@ -60,6 +61,19 @@ function showInfoCard(data) {
   foundBtn.classList.add('hidden');
 }
 
+function closeInfoCard() {
+  infoCard.classList.remove('visible');
+
+  if (currentActiveMarker) {
+    currentActiveMarker.classList.remove('active');
+    currentActiveMarker = null;
+  }
+
+  setTimeout(() => {
+    infoCard.classList.add('hidden', 'collapsed');
+  }, 400);
+}
+
 // TOGGLE INFO CARD (expand/collapse)
 function toggleInfoCard() {
   const isCollapsed = infoCard.classList.contains('collapsed');
@@ -89,25 +103,44 @@ image.addEventListener('click', () => {
 
 // CLOSE INFO CARD
 closeInfoBtn.addEventListener('click', () => {
-  infoCard.classList.remove('visible');
-  setTimeout(() => {
-    infoCard.classList.add('hidden');
-    infoCard.classList.add('collapsed');
-  }, 400); // matches CSS transition time
+  closeInfoCard();
 });
-
-
 
 // MAIN MAP STUFF
 const map = new mapboxgl.Map({
   container: 'map',
   style: 'mapbox://styles/mapbox/streets-v12',
   center: [4.89, 52.37],
-  zoom: 12
+  zoom: 12,
+  pitch: 0, 
+  bearing: 0     
 });
+
+// Disable all tilt & rotation inputs
+map.setMaxPitch(0);
+map.setMinPitch(0);
+map.touchPitch.disable();
+map.dragRotate.disable();
+map.touchZoomRotate.disableRotation();                  
 
 //the plus and minus button
 // map.addControl(new mapboxgl.NavigationControl());
+
+// 🧭 Add navigation control (includes compass)
+// map.addControl(new mapboxgl.NavigationControl({ showCompass: true }), 'top-right');
+
+const geolocateControl = new mapboxgl.GeolocateControl({
+  positionOptions: { enableHighAccuracy: true },
+  trackUserLocation: true,
+  showUserHeading: true
+});
+
+// 📍 Add geolocate control (shows "locate me" button)
+map.addControl(geolocateControl, 'bottom-right');
+
+map.on('load', () => {
+  geolocateControl.trigger();
+});
 
 // Load locations from server
 fetch('/api/locations')
@@ -117,16 +150,39 @@ fetch('/api/locations')
 
       const el = document.createElement('div');
       el.className = 'lichen-marker';
-      el.style.backgroundImage = `url('${loc.lichenImage}')`;
+      el.dataset.lichenId = loc.id;
+
+      const inner = document.createElement('div');
+      inner.className = 'lichen-inner';
+      inner.style.backgroundImage = `url('${loc.lichenImage}')`;
+
+      el.appendChild(inner);
+
+      const foundList = JSON.parse(localStorage.getItem('foundLichens')) || [];
+      if (foundList.includes(loc.id)) {
+        el.classList.add('found-marker'); 
+      }
 
       const marker = new mapboxgl.Marker(el)
         .setLngLat(loc.coordinates)
         .addTo(map);
 
-      // Show info card on click
       el.addEventListener('click', () => {
+        if (document.body.classList.contains('gallery-mode')) {
+          // GALLERY MODE
+          // Make marker grow briefly on click
+          const inner = el.querySelector('.lichen-inner');
+          inner.style.transform = 'scale(1.6)';
+
+          setTimeout(() => {
+            inner.style.transform = 'scale(1.2)';
+          }, 300);
+          return;
+        }
+
         if (appMode !== 'view') return;
 
+        // NORMAL MODE
         // Handle active marker styling
         if (currentActiveMarker) {
           currentActiveMarker.classList.remove('active');
@@ -137,35 +193,74 @@ fetch('/api/locations')
         localStorage.setItem('selectedLichenID', loc.id);
         console.log(loc.id);
 
+        // Show info card
         if (infoCard.classList.contains('visible')) {
           infoCard.classList.remove('visible');
+
           setTimeout(() => {
             infoCard.classList.add('hidden');
-            showInfoCard(loc); // Open new card after previous one slides away
-          }, 400); // Match your CSS transition time
+            showInfoCard(loc);
+          }, 400);
         } else {
           showInfoCard(loc);
         }
       });
 
+
   });
 });
 
+// Watch user's location - and keep watching live
+// if (navigator.geolocation) {
+//   navigator.geolocation.watchPosition(
+//     (pos) => {
+//       const { latitude, longitude } = pos.coords;
+//       const userCoords = [longitude, latitude];
 
-// Show user's location
-if (navigator.geolocation) {
-  navigator.geolocation.getCurrentPosition(pos => {
-    const { latitude, longitude } = pos.coords;
+//       if (!userMarker) {
+//         // Create the marker on first location update
+//         userMarker = new mapboxgl.Marker({ color: 'blue' })
+//           .setLngLat(userCoords)
+//           // .setPopup(new mapboxgl.Popup().setText("You are here"))
+//           .addTo(map);
 
-    new mapboxgl.Marker({ color: 'blue' })
-      .setLngLat([longitude, latitude])
-      .setPopup(new mapboxgl.Popup().setText("You are here"))
-      .addTo(map);
+//         map.flyTo({ center: userCoords, zoom: 14 });
+//       } else {
+//         // Update marker position
+//         userMarker.setLngLat(userCoords);
+//       }
+//     },
+//     (err) => {
+//       console.error("Location tracking error:", err);
+//     },
+//     {
+//       enableHighAccuracy: true,
+//       maximumAge: 1000,
+//       timeout: 5000
+//     }
+//   );
+// }
 
-    map.flyTo({ center: [longitude, latitude], zoom: 14 });
-  });
+function markLichenAsFound(id) {
+  let foundList = JSON.parse(localStorage.getItem('foundLichens')) || [];
+  if (!foundList.includes(id)) {
+    foundList.push(id);
+    localStorage.setItem('foundLichens', JSON.stringify(foundList));
+  }
 }
 
+function updateMarkerVisibility() {
+  const isGallery = document.body.classList.contains('gallery-mode');
+  const found = JSON.parse(localStorage.getItem('foundLichens')) || [];
+
+  document.querySelectorAll('.mapboxgl-marker').forEach(marker => {
+    const id = marker.dataset.lichenId;
+    if (!id) return;
+
+    const shouldShow = !isGallery || found.includes(id);
+    marker.style.display = shouldShow ? 'block' : 'none';
+  });
+}
 
 //behavior when you click on the map
 map.on('click', (e) => {
@@ -185,10 +280,7 @@ map.on('click', (e) => {
 
     // Slide down the info card
     if (infoCard.classList.contains('visible')) {
-      infoCard.classList.remove('visible');
-      setTimeout(() => {
-        infoCard.classList.add('hidden');
-      }, 400); // Match CSS transition
+      closeInfoCard();
     }
   }
 });
@@ -329,13 +421,18 @@ galleryBtn.addEventListener('click', () => {
   document.body.classList.add('gallery-mode');
   galleryTitle.classList.remove('hidden');
   exitGallery.classList.remove('hidden');
+  updateMarkerVisibility();
   appMode = 'gallery'; 
+
+  // 👉 Close info card
+  closeInfoCard();
 });
 
 exitGallery.addEventListener('click', () => {
   document.body.classList.remove('gallery-mode');
   galleryTitle.classList.add('hidden');
   exitGallery.classList.add('hidden');
+  updateMarkerVisibility();
   appMode = 'view'; 
 });
 
@@ -355,9 +452,10 @@ const confirmUI = document.getElementById('confirmation-buttons');
 let imgData = null; //to store the photo
 
 foundBtn.addEventListener('click', () => {
-  infoCard.classList.remove('visible');
 
   cameraContainer.classList.remove('hidden');
+  cameraContainer.classList.add('fade-in');
+
   navigator.mediaDevices.getUserMedia({
     video: { facingMode: { exact: "environment" } }
   })
@@ -432,6 +530,7 @@ confirmBtn.addEventListener('click', async () => {
 
     if (result.startsWith("yes")) {
       // 🎉 Confirmed match
+      markLichenAsFound(lichenId);
       window.location.href = 'chat.html';
     } else {
       // ❌ Not a match
@@ -497,7 +596,14 @@ retakeBtn.addEventListener('click', () => {
 
 // Close camera and return to info card
 closeCamBtn.addEventListener('click', () => {
-  cameraContainer.classList.add('hidden');
+  cameraContainer.classList.remove('fade-in');
+  cameraContainer.classList.add('fade-out');
+
+  setTimeout(() => {
+    cameraContainer.classList.add('hidden');
+    cameraContainer.classList.remove('fade-out');
+  }, 400); // match your animation time
+
   infoCard.style.display = 'block';
   if (video.srcObject) {
     video.srcObject.getTracks().forEach(track => track.stop());
