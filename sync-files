@@ -1,5 +1,8 @@
 #!/usr/bin/env sh
 
-for x in * ; do
-    scp -r "$x" "root@unnatural-intelligence.com:app/unNatural_Intelligence/$x"
-done
+scp -r "$@" root@unnatural-intelligence.com:app/unNatural_Intelligence/
+
+#for x in * ; do
+
+#    scp -r "$x" "root@unnatural-intelligence.com:app/unNatural_Intelligence/"
+#done
