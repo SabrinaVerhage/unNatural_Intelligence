@@ -5,11 +5,11 @@ restart:
 	ssh root@unnatural-intelligence.com -t 'systemctl restart unnatural-intelligence.service'
 
 sync-files:
-	find . -mindepth 1 -maxdepth 1 \( -name .gitignore -o -name .git -o -name node_modules \) -prune -o -name '*' -print | xargs ./sync-files
+	ls | grep -v -E '.git|node_modules|sync-files' | xargs ./sync-files
 
 sync-files-from-scratch:
 	ssh root@unnatural-intelligence.com -t 'rm -rf app/unNatural_Intelligence; mkdir app/unNatural_Intelligence'
-	find . -mindepth 1 -maxdepth 1 \( -name .gitignore -o -name .git -o -name node_modules \) -prune -o -name '*' -print | xargs ./sync-files
+	ls | grep -v -E '.git|node_modules|sync-files' | xargs ./sync-files
 
 sync-and-restart: sync-files restart
 
