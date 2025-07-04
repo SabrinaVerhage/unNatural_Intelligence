@@ -4,7 +4,36 @@ const chatBox = document.getElementById('chat-box');
 const chatForm = document.getElementById('chat-form');
 const userInput = document.getElementById('user-input');
 const lichenPhoto = document.getElementById('lichen-photo');
+const chatContainer = document.querySelector('.chat-container');
+const backButton = document.querySelector('.back-button');
 
+// GETTING FULLSCREEN RIGHT
+function updateAppHeight() {
+  const vh = window.innerHeight * 0.01;
+  document.documentElement.style.setProperty('--vh', `${vh}px`);
+}
+
+// GETTING FULLSCREEN RIGHT AFTER RELOAD
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'visible') {
+    // recalculate height
+    updateAppHeight();
+    // force reflow by touching the DOM
+    requestAnimationFrame(() => {
+      document.body.style.transform = 'scale(1)'; // trick to flush layout
+      void document.body.offsetHeight; // force reflow
+    });
+  }
+});
+
+// Set initial value
+updateAppHeight();
+
+// Update on resize and orientation change
+window.addEventListener('resize', updateAppHeight);
+window.addEventListener('orientationchange', () => {
+  setTimeout(updateAppHeight, 100); // Small delay for orientation change
+});
 
 // Load selected lichen ID from localStorage
 const lichenId = localStorage.getItem('selectedLichenID');
@@ -24,20 +53,33 @@ if (!sessionId) {
 
 async function initChat() {
   try {
+    console.log('Initializing chat...');
+    
+    // Try to load lichen data first
     const res = await fetch(`/api/lichen/${lichenId}`);
     const data = await res.json();
     console.log("Loaded lichen data:", data);
 
-    // Set lichen image
-    if (data.lichenImage || data.locationImage) {
-      const imageUrl = data.lichenImage || data.locationImage;
-      lichenPhoto.src = imageUrl;
-      startIntroAnimation(imageUrl);
+    // Check for a generated image override
+    const generatedImage = localStorage.getItem('genLichenImage');
+    
+    // Choose which image to use: generated if present, else original lichen, else location
+    const lichenImageToUse = generatedImage || data.lichenImage;
+
+    if (lichenImageToUse) {
+      lichenPhoto.src = lichenImageToUse;
+      lichenPhoto.classList.add('has-image'); // hide emoji fallback
     }
+    
+    // Start the intro animation
+    startIntroAnimation();
+    
+    // Show typing bubble after animation
+    setTimeout(() => {
+      showTypingBubble();
+    }, 3500);
 
-    showTypingBubble();
-
-    // Send a silent starter message to the lichen
+    // Send initial API call and show first message
     const response = await fetch('/api/chat', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -55,28 +97,32 @@ async function initChat() {
     setTimeout(() => {
       removeTypingBubble();
       showMessage(reply, 'lichen');
-    }, 4000);
+    }, 5500);
 
   } catch (err) {
     console.error("Initialization error:", err);
     removeTypingBubble();
-    showMessage("I seem to be fading… try finding me again.");
+    showMessage("I seem to be fading… try finding me again.", 'lichen');
   }
 }
 
-initChat();
 
-
-function startIntroAnimation(imageUrl) {
-  const introImage = document.createElement('img');
-  introImage.src = imageUrl;
-  introImage.className = 'fullscreen-intro';
-  document.body.appendChild(introImage);
-
-  introImage.addEventListener('animationend', () => {
-    introImage.remove();
-    document.querySelector('.chat-container').style.opacity = 1;
-  });
+function startIntroAnimation() {
+  console.log('Starting intro animation...');
+  
+  // After 1 second, start the shrink animation
+  setTimeout(() => {
+    lichenPhoto.classList.add('shrink');
+    console.log('Photo should be shrinking...');
+    
+    // After animation completes, show chat interface
+    setTimeout(() => {
+      chatContainer.classList.add('visible');
+      backButton.classList.add('visible');
+      console.log('Chat interface should be visible...');
+    }, 1600); // Wait for animation to complete
+    
+  }, 1000);
 }
 
 function showTypingBubble() {
@@ -89,8 +135,7 @@ function showTypingBubble() {
   indicator.innerHTML = '<span></span><span></span><span></span>';
 
   typingMsg.appendChild(indicator);
-  chatBox.appendChild(typingMsg);
-  chatBox.scrollTop = chatBox.scrollHeight;
+  chatBox.prepend(typingMsg);
 }
 
 function removeTypingBubble() {
@@ -103,12 +148,11 @@ function showMessage(text, sender = 'lichen') {
   const msg = document.createElement('div');
   msg.className = `message ${sender}`;
   msg.textContent = text;
-  chatBox.appendChild(msg);
-  chatBox.scrollTop = chatBox.scrollHeight;
+  chatBox.prepend(msg);
 }
 
 document.querySelector('.back-button').addEventListener('click', () => {
-  window.location.href = 'index.html';
+  window.location.href = 'map.html';
 });
 
 
@@ -120,6 +164,8 @@ chatForm.addEventListener('submit', async (e) => {
 
   showMessage(message, 'user');
   userInput.value = '';
+
+  showTypingBubble();
 
   // Get OpenAI response
   try {
@@ -138,9 +184,14 @@ chatForm.addEventListener('submit', async (e) => {
 
     const data = await response.json();
     const reply = data.reply;
+
+    removeTypingBubble();
     showMessage(reply, 'lichen');
   } catch (err) {
     console.error(err);
+    removeTypingBubble();
     showMessage("Hmm... I couldn't quite hear you. Maybe try again?", 'lichen');
   }
 });
+
+initChat();

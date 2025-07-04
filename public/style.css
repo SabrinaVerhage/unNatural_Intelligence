@@ -1,13 +1,193 @@
+
+
 html, body {
   margin: 0;
   padding: 0;
-  height: 100dvh;
-  width: 100%;
-  overflow: hidden; /* allow internal zones to scroll, not the page */
+  height: 100%;
+  width: 100vw; 
+  overflow: hidden;
   font-family: 'Avenir', sans-serif;
   background: #f2f2f2;
   touch-action: manipulation;
-  -ms-touch-action: manipulation; /* for legacy MS browsers */
+  -ms-touch-action: manipulation; 
+}
+
+html {
+  transform: translateZ(0); /* triggers GPU rendering */
+}
+
+@supports not (height: calc(var(--vh) * 100)) {
+  #map {
+    height: 100vh;
+  }
+}
+
+/***************** LANDING PAGE STYLES *****************/
+
+body.landing-page {
+  background: #000;
+  color: white;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.landing-container {
+  position: relative;
+  width: 100%;
+  min-height: 100vh; /* Changed from height to min-height for scrolling */
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 0;
+  box-sizing: border-box;
+  background-size: cover;
+  background-position: center;
+}
+
+.hero-image {
+  position: absolute;
+  top: 80px;
+  left: 0;
+  width: 100%;
+  height: 50vh; 
+  object-fit: cover;
+  z-index: 1;
+}
+
+.overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    to bottom,
+    rgba(0,0,0,0.1) 0%,
+    rgba(0,0,0,0.3) 50%,
+    rgba(0,0,0,0.7) 100%
+  );
+  z-index: 2;
+}
+
+.content {
+  position: relative;
+  z-index: 3;
+  min-height: 100vh; /* Changed to min-height */
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 40px 24px 60px;
+  box-sizing: border-box;
+}
+
+.tagline {
+  background: rgba(222, 168, 223, 0.9);
+  color: white;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 18px;
+  font-weight: 500;
+  display: inline-block;
+  align-self: flex-start;
+  margin-top: 20px;
+}
+
+.title-section {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
+  margin-top: -100px;
+
+  padding: 60px 0; /* Added padding for better spacing when scrolling */
+}
+
+.main-title {
+  font-size: clamp(60px, 15vw, 120px);
+  line-height: 0.9;
+  font-weight: 300;
+  margin-top: 200px;
+  text-shadow: 0 2px 10px rgba(0,0,0,0.5);
+}
+
+.subtitle {
+  background: rgba(222, 168, 223, 0.9);
+  color: white;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 14px;
+  font-weight: 500;
+  margin-top: 10px;
+  display: inline-block;
+  align-self: flex-end;
+}
+
+.description {
+  max-width: 500px;
+  font-size: 16px;
+  line-height: 1.3;
+  margin-top: 24px;
+  text-shadow: 0 1px 3px rgba(0,0,0,0.7);
+}
+
+.get-started {
+  font-weight: bold;
+  font-size: 20px;
+  text-align: right;
+  color: white;
+  cursor: pointer;
+  text-decoration: none;
+
+  margin-top: 40px;
+  margin-right: 0;
+  align-self: flex-end;
+  line-height: 1.2;
+
+  transition: opacity 0.2s ease;
+}
+
+/* Mobile optimizations for landing page */
+@media (max-width: 768px) {
+  .landing-container .content {
+    padding: 20px 16px 40px;
+  }
+
+  .landing-container .get-started {
+    font-size: 24px;
+    padding: 20px 24px;
+    margin-top: 20px;
+    align-self: stretch; /* Full width on mobile */
+  }
+
+  .landing-container .title-section {
+    margin-top: -20px; /* Reduced negative margin on mobile */
+    padding: 40px 0;
+  }
+
+  .hero-image {
+    height: 40vh; /* Slightly smaller on mobile */
+  }
+}
+
+/* Landscape mobile for landing page */
+@media (max-height: 500px) {
+  .landing-container .title-section {
+    margin-top: -30px;
+    padding: 20px 0;
+  }
+  
+  .landing-container .main-title {
+    font-size: clamp(32px, 8vw, 48px);
+  }
+  
+  .landing-container .content {
+    padding: 16px 16px 24px;
+  }
+
+  .hero-image {
+    height: 35vh; /* Even smaller in landscape */
+  }
 }
 
 /***************** /*INSTRUCTIONS OVERLAY*/
@@ -18,23 +198,22 @@ html, body {
   background: #dea8df;
   color: white;
   z-index: 10002;
-  display: flex;
+  /*display: flex;*/
   flex-direction: column;
   align-items: center;
   overflow-y: auto;
-  opacity: 1;
-  transition: opacity 0.5s ease;
   font-family: 'Avenir', sans-serif;
-}
 
-#instr-screen.fade-in {
-  opacity: 1;
-  pointer-events: auto;
-}
-
-#instr-screen.fade-out {
   opacity: 0;
   pointer-events: none;
+  transition: opacity 0.5s ease;
+}
+
+/* Simple visible state instead of fade-in/fade-out classes */
+#instr-screen.visible {
+  opacity: 1;
+  pointer-events: auto;
+  display: flex;
 }
 
 .step-1 h2, .step-3 h2 {
@@ -43,7 +222,7 @@ html, body {
   margin: 0 0 0px;  
   padding-bottom: 6px;
 }
-.step-2 h2 {
+.step-2 h2, .step-4 h2 {
   font-size: 26px;
   text-align: right;
   margin: 0 0 0px;  
@@ -56,7 +235,7 @@ html, body {
   margin: 0 0 0px;  
   padding-top: 10px;
 }
-.step-2 p {
+.step-2 p, .step-4 p {
   font-size: 16px;
   text-align: right;
   margin: 0 0 0px;  
@@ -64,7 +243,7 @@ html, body {
 }
 
 .instr-step {
-  margin-bottom: 0px;
+  margin-bottom: 15px;
   text-align: left;
 }
 
@@ -74,7 +253,7 @@ html, body {
   margin: 0 0 0px;  
 }
 
-.step-2 img {
+.step-2 img, .step-4 img {
   display: block;
   margin-left: auto;
   margin-right: 0;
@@ -90,7 +269,7 @@ html, body {
 .instr-wrapper h1 {
   font-size: 60px;
   line-height: 0.9;
-  margin-bottom: 40px;
+  margin-bottom: 50px;
   font-weight: bold;
 }
 
@@ -114,33 +293,25 @@ html, body {
 
   margin-top: 40px;
   margin-right: 0;
+  padding-bottom: 20px;
   align-self: flex-end;
   line-height: 1.2;
 
   transition: opacity 0.2s ease;
 }
 
-#start-btn {
-  display: block;
-  margin: 40px auto 0;
-  font-size: 18px;
-  padding: 12px 24px;
-  border: none;
-  background: white;
-  color: #2d2d2d;
-  border-radius: 24px;
-  cursor: pointer;
-}
 
 /***************** /*MAIN MAP*/
 
 #map {
-  height: 100vh;
-  width: 100%;
   position: absolute;
   top: 0;
   left: 0;
   z-index: 0;
+  height: calc(var(--vh) * 100);
+  width: 100%;
+  background-color: white;
+  /*transition: background-color 0.5s ease; */*/
 }
 
 .lichen-marker {
@@ -356,82 +527,93 @@ html, body {
   background: #e8bce4;
 }
 
-/***************** /*INFO CARD OVERLAY*/
+/***************** INFO CARD OVERLAY *****************/
 
 #info-card {
   position: absolute;
   bottom: 0;
   left: 0;
   right: 0;
-  background: #2d2f30;               /* or #fff for clean feel */
-  color: black;                    /* better contrast on white */
+  background: #2d2f30;              
+  color: black;                    
   border-radius: 20px 20px 0 0;
-  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.1);
   z-index: 15;
   max-height: 90%;
-  /*transition: transform 0.4s ease, max-height 0.4s ease;*/
-  transition:
-    transform 0.4s ease,
-    max-height 0.4s ease,
-    border-radius 0.3s ease,
-    box-shadow 0.3s ease;
-  transform: translateY(100%);
   overflow: hidden;
-  overflow-y: auto;
   display: flex;
   flex-direction: column;
   align-items: center;
+  
+  /* Smoother, more consistent transition */
+  transition: transform 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  transform: translateY(100%);
+  
+  /* Ensure consistent state */
+  opacity: 1;
+  visibility: visible;
 }
 
-#info-card.visible {
-  transform: translateY(0%);
-  opacity: 1;
+#info-card.visible.collapsed {
+  transform: translateY(20px); /* Partially visible, image clipped */
 }
 
 #info-card.visible.expanded {
-  max-height: 90vh;
-  border-radius: 30px 30px 0 0;
-  box-shadow: 0 -8px 30px rgba(0, 0, 0, 0.2);
+  transform: translateY(0%); /* Fully visible */
+/*  box-shadow: 
+    0 8px 30px rgba(0, 0, 0, 0.2),
+    0 -8px 30px rgba(0, 0, 0, 0.2);*/
 }
 
-#info-card.hidden:not(.visible) {
-  transform: translateY(100%);
+#info-card.collapsed {
+  /* When collapsed, the card sits lower, clipping the bottom of the image */
+  border-radius: 20px 20px 0 0; /* Keep only top corners rounded */
+}
+
+#info-card.expanded {
+  border-radius: 20px 20px 0 0; /* Keep only top corners rounded */
+  box-shadow: 
+    0 8px 30px rgba(0, 0, 0, 0.2),   /* Shadow below */
+    0 -8px 30px rgba(0, 0, 0, 0.2);  /* Shadow above */
+}
+
+#info-card.collapsed .info-layout {
+  max-height: 0;
   opacity: 0;
-}
-
-#info-card.collapsed .info-text,
-#info-card.collapsed #toggle-button {
-  display: none;
-  max-height: 200px; /* might adjust? */
+  padding-bottom: 0;
 }
 
 #info-card.expanded .info-layout {
-  max-height: 600px; /* or however tall your content is */
+  max-height: calc(100dvh - 275px);
   opacity: 1;
-  transition:
-    max-height 0.4s ease,
-    opacity 0.2s ease;
+  padding-bottom: 24px; 
 }
 
-
-#info-card h2 {
-  font-size: 20px;
-  margin-bottom: 8px;
+#info-card.hidden {
+  transform: translateY(100%);
+  /* Add a slight delay to prevent flash */
+  transition-delay: 0.1s;
 }
 
 .hidden {
-  display: none;
+  display: none !important;
 }
 
 .info-layout {
   width: 100%;
-  padding: 0 24px 24px;  /* left-right margin + bottom breathing space */
+  padding: 0 24px 0px; /* Start with 0 bottom padding */
   box-sizing: border-box;
-  transition: max-height 0.4s ease;
+  overflow-y: auto;
+  
+  /* Smooth transition for height and opacity */
+  transition: 
+    max-height 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+    opacity 0.3s ease 0.1s,
+    padding 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    
   max-height: 0;
   opacity: 0;
-  overflow: hidden;
-  transition: max-height 0.4s ease, opacity 0.2s ease 0.1s;
+  padding-bottom: 0;
 }
 
 .info-text {
@@ -439,13 +621,49 @@ html, body {
   text-align: left;
   font-size: 16px;
   line-height: 1.5;
-  margin-top: 24px;
+  margin-top: 50px;
+}
+
+.info-text h2 {
+  font-size: 25px;
+  font-weight: bold;
+  margin-bottom: 8px;
+  margin-top: 0;
 }
 
 .info-image-wrapper {
   position: relative;
   width: 100%;
+}
 
+.info-text p {
+  margin-bottom: 12px;
+}
+
+#info-image {
+  width: 100%;
+  height: 170px;
+  object-fit: cover;
+  display: block;
+  margin: 0;
+  border-radius: 20px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1); 
+  margin-bottom: -20px; /* Extend the image down so it gets clipped */
+  /*transition: box-shadow 0.4s ease, opacity 0.3s ease;*/
+  position: relative; /* Add this to prevent z-index conflicts */
+  z-index: 5; 
+
+  transition: opacity 0.4s ease, box-shadow 0.3s ease;
+  opacity: 0; /* Start invisible */
+}
+
+#info-image.loaded {
+  opacity: 1; /* Fade in when loaded */
+}
+
+/* Enhanced shadow when expanded */
+#info-card.expanded #info-image {
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
 }
 
 #info-name {
@@ -458,77 +676,176 @@ html, body {
   margin-bottom: 12px;
 }
 
-#info-image {
+.info-info-image {
   width: 100%;
-  height: 200px; /* desired height */
   object-fit: cover;
   display: block;
   margin: 0;
-  border-radius: 20px; /* rounded all corners */
-  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3); /* subtle shadow below */
+  position: relative;
+  z-index: 0; /* Keep other images below the main image */
 }
 
-#expand-info {
+#toggle-info {
   position: absolute;
-  bottom: 16px;
-  right: 16px;
-
+  bottom: 40px;
+  right: 24px;
   background: #d2a2d3;
   color: white;
   border: none;
   border-radius: 20px;
   padding: 8px 14px;
   font-size: 14px;
-  /*font-weight: 500;*/
   cursor: pointer;
-
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
-  z-index: 1;
+  z-index: 6;
+  transition: opacity 0.2s ease;
 }
 
-#toggle-info {
-  position: absolute;
-  bottom: 16px;
-  right: 24px;
-  background: #d2a2d3;
-  color: white;
-  border: none;
-  border-radius: 20px;
-  padding: 8px 14px; /* inside the button */
-  font-size: 14px;
-  cursor: pointer;
-  z-index: 2;
-}
-
-#close-info {
+/*#close-info {
   position: absolute;
   top: 10px;
   right: 20px;
-  color: white;
-  font-size: 40px;
+  color: black;
+  font-size: 60px;
   background: none;
   border: none;
   padding: 0;
   cursor: pointer;
-  z-index: 2;
+  z-index: 6;
   line-height: 1;
+  transition: opacity 0.2s ease;
+}*/
+
+/* FOUND BUTTON STYLES - this was missing! */
+#found-button {
+  font-weight: 800;
+  font-size: 28px;
+  text-align: right;
+  color: #dea8df;
+  background: none;
+  border: none;
+  cursor: pointer;
+  line-height: 1.1;
+  text-transform: uppercase;
+  margin-top: 32px;
+  margin-left: auto;
+  display: block;
+  
+  /* Smooth transition for found button */
+  transition: 
+    opacity 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94) 0.2s,
+    transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94) 0.2s;
+}
+
+/* Hide found button in collapsed state */
+#info-card.collapsed #found-button {
+  opacity: 0;
+  transform: translateY(10px);
+  pointer-events: none;
+  transition-delay: 0s; /* No delay when hiding */
+}
+
+#info-card.expanded #found-button {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
 }
 
 
 /***************** /*GALLERY MODE*/
 
 body.gallery-mode #map {
-  background: #111; /* Or use a poetic background image */
+  background-color: black;
+  width: 100%;
 }
-
-/*body.gallery-mode #map {
-  background: url('images/your-image.png') center center / cover no-repeat;
-}*/
 
 body.gallery-mode .mapboxgl-canvas {
   opacity: 0;
-  transition: opacity 0.5s ease;
+  transition: background-color 0.5s ease, opacity 0.5s ease;
 }
+
+body .mapboxgl-ctrl-logo,
+body .mapboxgl-ctrl-attrib {
+  display: none !important;
+}
+
+body.gallery-mode .mapboxgl-ctrl-geolocate,
+body.gallery-mode .mapboxgl-ctrl-logo,
+body.gallery-mode .mapboxgl-ctrl-attrib {
+  display: none !important;
+}
+
+
+/*MAPBOX STUFF*/
+/*.mapboxgl-ctrl-geolocate {
+  width: 40px !important;
+  height: 40px !important;
+}*/
+
+/* Hide the default geolocate button */
+.mapboxgl-ctrl-geolocate {
+  display: none !important;
+}
+
+/* Custom crosshair button */
+.custom-geolocate {
+  position: absolute;
+  bottom: 20px;
+  right: 20px;
+  width: 40px;
+  height: 40px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  z-index: 1000;
+  padding: 0;
+}
+
+/* Create the crosshair with pseudo-elements */
+.custom-geolocate::before,
+.custom-geolocate::after {
+  content: '';
+  position: absolute;
+  background: #333; /* Change to 'white' for white crosshair */
+  border-radius: 1px;
+  transition: all 0.2s ease;
+}
+
+/* Vertical line */
+.custom-geolocate::before {
+  width: 3px;
+  height: 20px;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+}
+
+/* Horizontal line */
+.custom-geolocate::after {
+  width: 20px;
+  height: 3px;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+}
+
+/* Hover effect */
+.custom-geolocate:hover::before,
+.custom-geolocate:hover::after {
+  background: #666;
+  transform: translate(-50%, -50%) scale(1.1);
+}
+
+/* White version (add 'white' class for dark backgrounds) */
+.custom-geolocate.white::before,
+.custom-geolocate.white::after {
+  background: white;
+}
+
+.custom-geolocate.white:hover::before,
+.custom-geolocate.white:hover::after {
+  background: #ddd;
+}
+
 
 body.gallery-mode .lichen-marker {
   transform: scale(1.2);
@@ -552,58 +869,54 @@ body.gallery-mode #add-btn {
   line-height: 0.9;
   color: white;
   z-index: 2000;
+  /* Remove the individual pointer-events: none from here */
+  opacity: 0;
   pointer-events: none;
-  /*text-shadow: 0 0 10px rgba(0,0,0,0.5);*/
+  transition: opacity 0.5s ease;
 }
-
 
 #exit-gallery {
   position: fixed;
   top: 20px;
   right: 20px;
-  font-size: 40px;
+  font-size: 60px;
   background: none;
   border: none;
   color: white;
   z-index: 2001;
   cursor: pointer;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.5s ease;
+}
+
+/* When visible, show them */
+#gallery-title.visible,
+#exit-gallery.visible {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* UI elements fade out in gallery mode */
+#top-ui,
+#add-btn {
+  transition: opacity 0.5s ease;
+}
+
+body.gallery-mode #top-ui,
+body.gallery-mode #add-btn {
+  opacity: 0;
+  pointer-events: none;
 }
 
 /***************** /*CAMERA OVERLAY*/
-
-#found-button {
-  font-weight: 800;
-  font-size: 28px;
-  text-align: right;
-  color: #dea8df;
-  background: none;
-  border: none;
-  cursor: pointer;
-  /*margin: 40px 20px 20px auto;*/
-  line-height: 1.1;
-  text-transform: uppercase;
-  margin-top: 32px;
-  margin-left: auto;
-  display: block; 
-  /*transition: opacity 0.3s ease;*/
-}
-
-#expand-info {
-  margin-top: 12px;
-  background: #d2a2d3;
-  border: none;
-  border-radius: 20px;
-  padding: 12px;
-  font-size: 16px;
-  cursor: pointer;
-}
 
 #camera-container {
   position: fixed;
   top: 0;
   left: 0;
-  height: 100dvh;
-  width: 100vw;
+  height: calc(var(--vh) * 100);
+  width: 100%;
   background: black;
   z-index: 11000;
   display: flex;
@@ -647,11 +960,13 @@ body.gallery-mode #add-btn {
   position: absolute;
   top: 0;
   left: 0;
-  width: 100vw;
-  height: 100dvh;
+  height: calc(var(--vh) * 100);
+  width: 100%;
   object-fit: cover;
   z-index: 0;
+
 }
+
 
 #camera-bottom,
 #close-camera {
@@ -663,7 +978,7 @@ body.gallery-mode #add-btn {
   font-size: 16px;
   opacity: 0.6;
   margin-top: 20px;
-  margin-bottom: 16px;
+  margin-bottom: 50px;
   text-align: center;
   font-family: 'Avenir', sans-serif;
 }
@@ -672,9 +987,10 @@ body.gallery-mode #add-btn {
   background: white;
   border: 4px solid #d2a2d3;
   border-radius: 50%;
+
   width: 72px;
   height: 72px;
-  margin-bottom: 16px;
+  margin-bottom: 25px;
   cursor: pointer;
   box-shadow: 0 4px 12px rgba(0,0,0,0.4);
   transition: transform 0.2s ease;
@@ -688,8 +1004,8 @@ body.gallery-mode #add-btn {
   position: absolute;
   top: 0;
   left: 0;
-  width: 100vw;
-  height: 100dvh;
+  height: calc(var(--vh) * 100);
+  width: 100%;
   object-fit: cover;
   z-index: 1; /* On top of video, below UI */
 }
@@ -714,10 +1030,10 @@ body.gallery-mode #add-btn {
 
 #confirmation-buttons {
   position: absolute;
-  bottom: 32px;
+  bottom: 40px;
   display: flex;
   justify-content: center;
-  gap: 32px;
+  gap: 65px;
   z-index: 2;
 }
 
@@ -725,10 +1041,10 @@ body.gallery-mode #add-btn {
   width: 64px;
   height: 64px;
   border-radius: 50%;
-  background-color: white;
+  background-color: #d2a2d3;
   border: 4px solid #d2a2d3;
-  color: black;
-  font-size: 24px;
+  color: white;
+  font-size: 40px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -767,68 +1083,58 @@ body.gallery-mode #add-btn {
 
 /***************** /*CHAT PAGE*/
 
-.fullscreen-intro {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
-  object-fit: cover;
-  z-index: 1000;
-  animation: slideUpCrop 1.5s ease forwards;
-  border-radius: 0;
-}
-
-@keyframes slideUpCrop {
-  0% {
-    transform: translateY(0);
-    opacity: 1;
-    border-radius: 0;
-  }
-  100% {
-    transform: translateY(-35%);
-    opacity: 0;
-    border-radius: 20px;
-  }
+:root {
+  --vh: 1vh;
 }
 
 .chat-container {
-  opacity: 0;
-  transition: opacity 0.8s ease 0.5s;
+  /*transition: opacity 0.5s ease;*/
   display: flex;
   flex-direction: column;
-  /*height: 100vh;*/
-  height: 100dvh; 
-  /*padding: 10px;*/
-  box-sizing: border-box;
+  height: 100%;
+  height: calc(var(--vh, 1vh) * 100);
   background-color: #111;
+  position: relative;
 }
 
-@supports not (height: 100dvh) {
-  .chat-container {
-    height: 100vh;
-  }
+.chat-container.visible {
+  
 }
 
 .photo-header {
   width: 100%;
-  max-height: 250px;
-  position: fixed;
+  height: 250px;
+  position: fixed; /* Keep it fixed at top */
   top: 0;
   left: 0;
-  border-radius: 20px; /* rounded all corners */
   overflow: hidden;
   z-index: 10;
+  flex-shrink: 0; /* Don't let it shrink */
 }
 
 #lichen-photo {
-  width: 100%;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
   height: 100%;
-  border-radius: 20px; /* rounded all corners */
+  height: calc(var(--vh, 1vh) * 100);
+  border-radius: 20px;
   object-fit: cover;
-  display: block;
+  z-index: 9999;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+  /*background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);*/
+  
+  /* This is the animation - it will shrink and move */
+  transition: all 1.5s cubic-bezier(0.4, 0.0, 0.2, 1);
 }
 
+#lichen-photo.shrink {
+  width: 100%;
+  height: 250px;
+  border-radius: 20px;
+  z-index: 10;
+}
 
 .back-button {
   position: absolute;
@@ -836,7 +1142,7 @@ body.gallery-mode #add-btn {
   left: 20px;
   width: 64px;
   height: 64px;
-  background-color: #e6b7e1; /* soft pink */
+  background-color: rgba(230, 183, 225, 0.9);
   color: white;
   font-size: 40px;
   border-radius: 50%;
@@ -844,29 +1150,51 @@ body.gallery-mode #add-btn {
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+  box-shadow: 0 2px 10px rgba(0,0,0,0.6);
   cursor: pointer;
+  z-index: 11;
+  backdrop-filter: blur(10px);
+  opacity: 0;
+  transition: opacity 0.5s ease;
+}
 
+.back-button.visible {
+  opacity: 1;
 }
 
 .chat-body {
-  flex-grow: 1;
+  flex: 1;
   display: flex;
   flex-direction: column;
-  padding: 15px 15px;
-  padding-top: 270px; /* Leave space for the fixed image */
-  padding-bottom: 20px;
+  margin-top: 250px; /* Push down by header height */
+  padding: 0px 24px 20px 24px;
+  min-height: 0; /* Important for flex */
+  max-height: calc(calc(var(--vh, 1vh) * 100) - 250px);
   height: 100%;
   box-sizing: border-box;
-  overflow-y: auto;
 }
 
 .chat-box {
-  flex-grow: 1;
-  overflow-y: auto;
   display: flex;
-  flex-direction: column;
-  gap: 8px;
+  flex-direction: column-reverse;
+  justify-content: flex-start;
+  overflow-y: auto;
+  overflow-x: hidden;
+  flex: 1 1 auto;
+  gap: 10px;
+  padding-bottom: 10px;
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE/Edge */
+  min-height: 0;
+}
+
+.chat-box {
+  height: 100% !important;
+  width: 100% !important;
+}
+
+.chat-box::-webkit-scrollbar {
+  display: none; /* Chrome/Safari */
 }
 
 .message {
@@ -876,20 +1204,33 @@ body.gallery-mode #add-btn {
   font-size: 16px;
   line-height: 1.4;
   word-wrap: break-word;
+  animation: messageSlideIn 0.3s ease forwards;
+}
+
+@keyframes messageSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .message.lichen {
   background-color: #d2a2d3;
   color: black;
   align-self: flex-start;
+  border-bottom-left-radius: 8px;
 }
 
 .message.user {
-  background-color: #888;
+  background-color: #444;
   color: white;
   align-self: flex-end;
+  border-bottom-right-radius: 8px;
 }
-
 
 .message.typing {
   background-color: #d2a2d3;
@@ -938,43 +1279,52 @@ body.gallery-mode #add-btn {
   }
 }
 
-
 #chat-form {
   margin-top: 10px;
+  position: relative;
 }
 
 .input-wrapper {
   position: relative;
+  color: white;
   width: 100%;
+  flex-shrink: 0;
+  padding-bottom: env(safe-area-inset-bottom); 
 }
 
 #user-input {
   width: 100%;
-  padding: 20px 70px 20px 20px; /* right padding leaves space for the button */
-  border-radius: 30px;
+  padding: 16px 60px 16px 20px;
+  border-radius: 25px;
   border: none;
   font-size: 16px;
   box-sizing: border-box;
+  background: white;
+  outline: none;
+}
+
+#user-input::placeholder {
+  color: #888;
 }
 
 #send-button {
   position: absolute;
   right: 4px;
-  top: 50%;
+  top: 45%;
   transform: translateY(-50%);
   background-color: #d2a2d3;
   border: none;
   border-radius: 50%;
-  width: 50px;
-  height: 50px;
-  font-size: 30px;
+  width: 44px;
+  height: 44px;
+  font-size: 40px;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
+  color: white;
+  transition: background-color 0.2s ease;
 }
-
-
 
 /***************** /*ADMIN PAGE STUFF*/
 
@@ -1083,3 +1433,5 @@ body.gallery-mode #add-btn {
   border-radius: 6px;
   object-fit: cover;
 }
+
+

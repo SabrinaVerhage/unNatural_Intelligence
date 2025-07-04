@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>unNatural Intelligence</title>
+  <link href="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.css" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css">
+
+</head>
+<body>
+
+  <!-- Instructions Overlay -->
+  <div id="instr-screen">
+    <button id="instr-close">✕</button>
+    <div class="instr-wrapper">
+      <h1>How to experience</h1>
+
+      <div class="instr-step step-1">
+        <!-- <h3>Step 1</h3> -->
+        <h2>Open Your Eyes</h2>
+        <img src="images/step1.png" alt="Step 1 illustration" />
+        <p>Open the map and explore. You're looking for (un)naturally intelligent lichens — real organisms you can find growing in quiet places. Check the edge of a stone, the bark of a tree, in between leaves on branches. Lichen are everywhere — once you notice them, you’ll start seeing them all the time.</p>
+      </div>
+
+      <div class="instr-step step-2">
+        <!-- <h3>Step 2</h3> -->
+        <h2>Find (un)naturally intelligent lichen</h2>
+        <img src="images/step2.png" alt="Step 2 illustration" />
+        <p>Find a lichen and capture it to begin a chat. Each one has their own character and perspective, based on how they grow and where they live.
+        They’re not powered by brains — but by relationships. Talking with them might change how you think about intelligence.</p>
+      </div>
+
+      <div class="instr-step step-3">
+        <!-- <h3>Step 3</h3> -->
+        <h2>Collect and connect</h2>
+        <img src="images/step3.png" alt="Step 3 illustration" />
+        <p>Every lichen you connect with is added to your collection. Maybe they aren’t just conversations... but links in a larger system, a network of shared intelligence shaped by your choice and attention.</p>
+      </div>
+
+      <div class="instr-step step-4">
+        <!-- <h3>Step 4</h3> -->
+        <h2>Become (un)naturally intelligent</h2>
+        <img src="images/step4.png" alt="Step 4 illustration" />
+        <p>Intelligence doesn’t require a brain — it can emerge through structure, feedback, and connection. You are part of this distributed intelligence.
+        Intelligence is not isolated. It’s symbiotic.</p>
+      </div>
+
+      <div id="instr-back">CONTINUE<br/>TO MAP</div>
+    </div>
+  </div>
+
+  <!-- Map View -->
+  <h1>unNatural Intelligence</h1>
+  <div id="map"></div>
+
+  <!-- New Entry Form -->
+  <div id="form-container">
+    <form id="location-form">
+      <h2>Create</h2>
+      <p class="subhead">Create a new<br>(un)natural intelligence</p>
+
+      <label>
+        <input type="text" id="coordsDisplay" placeholder="Tap on the map to set location" readonly />
+        <input type="hidden" id="coords" />
+      </label>
+      <label>
+        <input type="text" id="desc" placeholder="Describe in detail where exactly one can see this lichen." />
+      </label>
+      <label>
+        <input type="text" id="locImg" placeholder="Upload an overview photo of the lichen" />
+      </label>
+      <label>
+        <input type="text" id="lichImg" placeholder="Upload a close-up of the lichen" />
+      </label>
+
+      <button type="submit">➕ Save Point</button>
+    </form>
+  </div>
+
+  <!-- Top UI Buttons -->
+  <div id="top-ui">
+    <button id="add-btn">＋</button>
+    <div class="top-buttons">
+      <button id="help-btn">instructions</button>
+      <button id="gallery-btn">your (un)natural intelligence</button>
+    </div>
+  </div>
+
+  <!-- Info Card Overlay -->
+  <div id="info-card" class="collapsed hidden">
+
+    <div class="info-image-wrapper">
+      <!-- <button id="close-info">✕</button> -->
+      <img id="info-image" />
+      <button id="toggle-info">more info...</button>
+    </div>
+
+    <div class="info-layout">
+      <div class="info-text">
+        <h2 id="info-name"></h2>
+        <img class="info-info-image" id="info-location-image" />
+        <p id="info-desc"></p>
+        <img class="info-info-image" id="info-closeup-image" />
+        <!-- <p class="meta" id="info-personality"></p> -->
+      </div>
+      <button id="found-button">FOUND<br/>YOU!</button>
+    </div>
+  </div>
+
+  <!-- Gallery Mode -->
+  <div id="gallery-title">(un)natural intelligence gallery</div>
+  <button id="exit-gallery">✕</button>
+
+  <!-- Camera Overlay -->
+  <div id="camera-container" class="hidden">
+    <video id="video" autoplay playsinline></video>
+
+    <div id="camera-bottom">
+      <p id="camera-label">align the lichen and tap to capture</p>
+      <button id="snap"></button>
+    </div>
+
+    <canvas id="canvas" style="display: none;"></canvas>
+    <div id="confirmation-buttons" class="hidden">
+      <button id="retake-photo">✕</button>
+      <button id="confirm-photo">→</button>
+    </div>
+    <button id="close-camera">←</button>
+  </div>
+
+  <div id="thinking-overlay" class="hidden">
+    <p>...searching for signs of<br/>(un)natural intelligence</p>
+  </div>
+
+  <script src="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.js"></script>
+  <script src="map.js"></script>
+</body>
+</html>

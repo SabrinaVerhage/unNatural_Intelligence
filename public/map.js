@@ -8,39 +8,66 @@ let selectedCoords = null;
 let currentActiveMarker = null;
 let userMarker = null;
 
+const ALLOW_NEW_LICHEN = false;
+
 const instrScreen = document.getElementById('instr-screen');
 const backToMap = document.getElementById('instr-back');
 const closeBtn = document.getElementById('instr-close');
 const helpBtn = document.getElementById('help-btn');
 const galleryBtn = document.getElementById('gallery-btn');
-const toggleBtn = document.getElementById('toggle-info');
-const image = document.getElementById('info-image');
 
 const infoCard = document.getElementById('info-card');
+const toggleBtn = document.getElementById('toggle-info');
 const infoName = document.getElementById('info-name');
 const infoDesc = document.getElementById('info-desc');
 const infoPersonality = document.getElementById('info-personality');
 const infoImage = document.getElementById('info-image');
-const closeInfoBtn = document.getElementById('close-info');
+const infoLocImage = document.getElementById('info-location-image');
+const infoCloseUpImage = document.getElementById('info-closeup-image');
+// const closeInfoBtn = document.getElementById('close-info');
+
 const formContainer = document.getElementById('form-container');
 const addBtn = document.getElementById('add-btn'); 
 
+if (!ALLOW_NEW_LICHEN) {
+  document.getElementById('add-btn').style.display = 'none';
+  document.getElementById('form-container').style.display = 'none';
+}
 
+//GETTING FULLSCREEN RIGHT
+function updateAppHeight() {
+  const vh = window.innerHeight * 0.01;
+  document.documentElement.style.setProperty('--vh', `${vh}px`);
+}
+
+//GETTING FULLSCREEN RIGHT AFTER RELOAD
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'visible') {
+    // recalculate height
+    updateAppHeight();
+
+    // force reflow by touching the DOM
+    requestAnimationFrame(() => {
+      document.body.style.transform = 'scale(1)'; // trick to flush layout
+      void document.body.offsetHeight; // force reflow
+    });
+  }
+});
+
+
+window.addEventListener('resize', updateAppHeight);
+window.addEventListener('orientationchange', updateAppHeight);
+window.addEventListener('load', updateAppHeight);
+updateAppHeight(); // initial call
 
 //INSTRUCTIONS OVERLAY
 helpBtn.addEventListener('click', () => {
-  instrScreen.style.display = 'flex';
-  instrScreen.classList.remove('fade-out');
-  instrScreen.classList.add('fade-in');
+  instrScreen.classList.add('visible');
   instrScreen.scrollTop = 0; //reset scroll position
 });
 
 function closeInstructions() {
-  instrScreen.classList.remove('fade-in');
-  instrScreen.classList.add('fade-out');
-  setTimeout(() => {
-    instrScreen.style.display = 'none';
-  }, 500); // match the CSS transition time
+  instrScreen.classList.remove('visible');
 }
 
 backToMap.addEventListener('click', closeInstructions);
@@ -49,19 +76,123 @@ closeBtn.addEventListener('click', closeInstructions);
 
 // SLIDE-IN INFO CARD
 function showInfoCard(data) {
+  const infoLayout = document.querySelector('.info-layout');
+  if (infoLayout) {
+    infoLayout.scrollTop = 0;
+  }
+
+  const isCurrentlyVisible = infoCard.classList.contains('visible');
+  
+  if (isCurrentlyVisible) {
+    slideDownAndShowNew(data);
+  } else {
+    openNewCard(data);
+  }
+}
+
+function slideDownAndShowNew(data) {
+  // First, slide down the current card
+  infoCard.classList.remove('visible');
+  
+  // Wait for slide down, then show new card
+  setTimeout(() => {
+    // Temporarily hide it
+    infoCard.classList.add('hidden');
+    
+    // Load new data
+    loadCardData(data);
+    showNewCardAfterSlideDown();
+  }, 400); // Wait for slide down animation
+}
+
+function showNewCardAfterSlideDown() {
+  // Reset to collapsed state and slide up
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      infoCard.classList.remove('hidden');
+      infoCard.classList.add('visible', 'collapsed');
+      infoCard.classList.remove('expanded');
+    });
+  });
+}
+
+function openNewCard(data) {
+  // Ensure clean starting state
+  infoCard.classList.remove('visible', 'expanded');
+  infoCard.classList.add('collapsed', 'hidden');
+  
+  // Load the data
+  loadCardData(data);
+  // showCardAfterImageLoad();
+
+  requestAnimationFrame(() => {
+    // Then trigger the animation
+    requestAnimationFrame(() => {
+      infoCard.classList.remove('hidden');
+      infoCard.classList.add('visible');
+      // Keep it collapsed for now
+    });
+  });
+
+}
+
+function loadCardData(data) {
+  console.log('Loading card data:', data);
+
+  // Load the data from the db
   infoName.textContent = data.name || '';
   infoDesc.textContent = data.locationDescription || '';
-  // infoPersonality.textContent = data.personality || '';
-  infoImage.src = data.lichenImage || '';
-
-  infoCard.classList.remove('hidden', 'expanded');
-  infoCard.classList.add('visible', 'collapsed');
   toggleBtn.textContent = 'more info...';
-  toggleBtn.classList.remove('hidden');
-  foundBtn.classList.add('hidden');
+
+  // Load all images at once - no complex loading logic
+  if (data.lichenImage) {
+    infoImage.src = data.lichenImage;
+    infoImage.style.opacity = '1';
+    infoImage.classList.add('loaded');
+  } else {
+    infoImage.src = '';
+    infoImage.style.opacity = '0';
+  }
+  
+  if (data.locationImage) {
+    infoLocImage.src = data.locationImage;
+  }
+  
+  if (data.lichenImage) {
+    infoCloseUpImage.src = data.lichenImage;
+  }
+}
+
+function showCardAfterImageLoad() {
+  // Remove hidden and make visible in collapsed state
+  setTimeout(() => {
+    infoCard.classList.remove('hidden');
+    infoCard.classList.add('visible', 'collapsed');
+  }, 150);
 }
 
 function closeInfoCard() {
+  // Reset scroll position when closing
+  const infoLayout = document.querySelector('.info-layout');
+  if (infoLayout) {
+    infoLayout.scrollTop = 0;
+  }
+
+  // Smoothly collapse first, then slide down
+  if (infoCard.classList.contains('expanded')) {
+    infoCard.classList.remove('expanded');
+    infoCard.classList.add('collapsed');
+    
+    setTimeout(() => {
+      slideDownAndHide();
+    }, 400);
+  } else {
+    slideDownAndHide();
+  }
+}
+
+function slideDownAndHide() {
+  // Remove visible to trigger slide down
   infoCard.classList.remove('visible');
 
   if (currentActiveMarker) {
@@ -69,23 +200,34 @@ function closeInfoCard() {
     currentActiveMarker = null;
   }
 
+  // Hide after slide-down animation completes
   setTimeout(() => {
-    infoCard.classList.add('hidden', 'collapsed');
-  }, 400);
+    infoCard.classList.add('hidden');
+    infoCard.classList.remove('expanded');
+    infoCard.classList.add('collapsed');
+    
+    // Reset image state
+    infoImage.src = '';
+    infoImage.style.opacity = '0';
+    infoImage.classList.remove('loaded');
+  }, 600); // Match the transition duration
 }
 
 // TOGGLE INFO CARD (expand/collapse)
 function toggleInfoCard() {
   const isCollapsed = infoCard.classList.contains('collapsed');
 
-  infoCard.classList.toggle('collapsed', !isCollapsed);
-  infoCard.classList.toggle('expanded', isCollapsed);
-
-  // update button text
-  toggleBtn.textContent = isCollapsed ? 'less info...' : 'more info...';
-
-  // show/hide bottom UI
-  // foundBtn.classList.toggle('hidden', !isCollapsed);
+  if (isCollapsed) {
+    // Expanding
+    infoCard.classList.remove('collapsed');
+    infoCard.classList.add('expanded');
+    toggleBtn.textContent = 'less info...';
+  } else {
+    // Collapsing
+    infoCard.classList.remove('expanded');
+    infoCard.classList.add('collapsed');
+    toggleBtn.textContent = 'more info...';
+  }
 }
 
 // Button click (toggle)
@@ -95,16 +237,16 @@ toggleBtn.addEventListener('click', (e) => {
 });
 
 // Image click (collapse only if expanded)
-image.addEventListener('click', () => {
+infoImage.addEventListener('click', () => {
   if (infoCard.classList.contains('expanded')) {
     toggleInfoCard();
   }
 });
 
 // CLOSE INFO CARD
-closeInfoBtn.addEventListener('click', () => {
-  closeInfoCard();
-});
+// closeInfoBtn.addEventListener('click', () => {
+//   closeInfoCard();
+// });
 
 // MAIN MAP STUFF
 const map = new mapboxgl.Map({
@@ -121,7 +263,11 @@ map.setMaxPitch(0);
 map.setMinPitch(0);
 map.touchPitch.disable();
 map.dragRotate.disable();
-map.touchZoomRotate.disableRotation();                  
+map.touchZoomRotate.disableRotation();    
+
+window.addEventListener('focus', () => {
+  window.scrollTo(0, 0);
+});              
 
 //the plus and minus button
 // map.addControl(new mapboxgl.NavigationControl());
@@ -136,7 +282,21 @@ const geolocateControl = new mapboxgl.GeolocateControl({
 });
 
 // 📍 Add geolocate control (shows "locate me" button)
-map.addControl(geolocateControl, 'bottom-right');
+// map.addControl(geolocateControl, 'bottom-right');
+// map.addControl(geolocateControl);
+
+// Add the hidden geolocate control (for functionality)
+map.addControl(geolocateControl);
+
+// Create custom crosshair button
+const customGeolocateBtn = document.createElement('button');
+customGeolocateBtn.className = 'custom-geolocate'; // Add 'white' class if you want white crosshair
+customGeolocateBtn.addEventListener('click', () => {
+  geolocateControl.trigger();
+});
+
+// Add to map container
+document.getElementById('map').appendChild(customGeolocateBtn);
 
 map.on('load', () => {
   geolocateControl.trigger();
@@ -182,6 +342,10 @@ fetch('/api/locations')
 
         if (appMode !== 'view') return;
 
+        if (el.classList.contains('active')) {
+          return; // Do nothing if marker is already active
+        }
+
         // NORMAL MODE
         // Handle active marker styling
         if (currentActiveMarker) {
@@ -194,52 +358,13 @@ fetch('/api/locations')
         console.log(loc.id);
 
         // Show info card
-        if (infoCard.classList.contains('visible')) {
-          infoCard.classList.remove('visible');
+        showInfoCard(loc);
 
-          setTimeout(() => {
-            infoCard.classList.add('hidden');
-            showInfoCard(loc);
-          }, 400);
-        } else {
-          showInfoCard(loc);
-        }
       });
 
 
   });
 });
-
-// Watch user's location - and keep watching live
-// if (navigator.geolocation) {
-//   navigator.geolocation.watchPosition(
-//     (pos) => {
-//       const { latitude, longitude } = pos.coords;
-//       const userCoords = [longitude, latitude];
-
-//       if (!userMarker) {
-//         // Create the marker on first location update
-//         userMarker = new mapboxgl.Marker({ color: 'blue' })
-//           .setLngLat(userCoords)
-//           // .setPopup(new mapboxgl.Popup().setText("You are here"))
-//           .addTo(map);
-
-//         map.flyTo({ center: userCoords, zoom: 14 });
-//       } else {
-//         // Update marker position
-//         userMarker.setLngLat(userCoords);
-//       }
-//     },
-//     (err) => {
-//       console.error("Location tracking error:", err);
-//     },
-//     {
-//       enableHighAccuracy: true,
-//       maximumAge: 1000,
-//       timeout: 5000
-//     }
-//   );
-// }
 
 function markLichenAsFound(id) {
   let foundList = JSON.parse(localStorage.getItem('foundLichens')) || [];
@@ -355,16 +480,7 @@ document.getElementById('location-form').addEventListener('submit', (e) => {
           personality: "✨ Newly added!"
         };
 
-        if (infoCard.classList.contains('visible')) {
-          infoCard.classList.remove('visible');
-          setTimeout(() => {
-            infoCard.classList.add('hidden');
-            showInfoCard(lichenData); // Open new card after previous one slides away
-          }, 400); // Match your CSS transition time
-        } else {
-          showInfoCard(lichenData);
-        }
-
+        showInfoCard(lichenData);   
         
       });
 
@@ -419,23 +535,29 @@ const exitGallery = document.getElementById('exit-gallery');
 
 galleryBtn.addEventListener('click', () => {
   document.body.classList.add('gallery-mode');
-  galleryTitle.classList.remove('hidden');
-  exitGallery.classList.remove('hidden');
+  
+  // Use visible class like instructions
+  galleryTitle.classList.add('visible');
+  exitGallery.classList.add('visible');
+  
   updateMarkerVisibility();
   appMode = 'gallery'; 
 
-  // 👉 Close info card
-  closeInfoCard();
+  if (infoCard.classList.contains('visible')) {
+    closeInfoCard();
+  }
 });
 
 exitGallery.addEventListener('click', () => {
   document.body.classList.remove('gallery-mode');
-  galleryTitle.classList.add('hidden');
-  exitGallery.classList.add('hidden');
+  
+  // Remove visible class like instructions
+  galleryTitle.classList.remove('visible');
+  exitGallery.classList.remove('visible');
+  
   updateMarkerVisibility();
   appMode = 'view'; 
 });
-
 
 //////////
 // Camera logic
@@ -452,6 +574,12 @@ const confirmUI = document.getElementById('confirmation-buttons');
 let imgData = null; //to store the photo
 
 foundBtn.addEventListener('click', () => {
+
+  // Store the current scroll position
+  const infoLayout = document.querySelector('.info-layout');
+  if (infoLayout) {
+    window.storedScrollPosition = infoLayout.scrollTop;
+  }
 
   cameraContainer.classList.remove('hidden');
   cameraContainer.classList.add('fade-in');
@@ -531,6 +659,23 @@ confirmBtn.addEventListener('click', async () => {
     if (result.startsWith("yes")) {
       // 🎉 Confirmed match
       markLichenAsFound(lichenId);
+
+
+      // 👇 Call Replicate to generate transformed image
+      const genRes = await fetch('/api/generate-image', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          base64Image: imgData.replace(/^data:image\/png;base64,/, '')
+        })
+      });
+
+      const genData = await genRes.json();
+      console.log("Generated image URL:", genData.output);
+
+      // Store the result or display it
+      localStorage.setItem('genLichenImage', genData.output);
+
       window.location.href = 'chat.html';
     } else {
       // ❌ Not a match
@@ -602,10 +747,23 @@ closeCamBtn.addEventListener('click', () => {
   setTimeout(() => {
     cameraContainer.classList.add('hidden');
     cameraContainer.classList.remove('fade-out');
+    
+    // Properly restore info card state
+    infoCard.classList.remove('hidden');
+    infoCard.classList.add('visible', 'expanded'); // Return to expanded state
+    infoCard.style.display = 'flex'; // Ensure it's visible
+    
+    // Reset scroll position
+    const infoLayout = document.querySelector('.info-layout');
+    if (infoLayout && window.storedScrollPosition !== undefined) {
+      infoLayout.scrollTop = window.storedScrollPosition;
+    }
+
   }, 400); // match your animation time
 
-  infoCard.style.display = 'block';
+  // infoCard.style.display = 'block';
   if (video.srcObject) {
     video.srcObject.getTracks().forEach(track => track.stop());
   }
+
 });

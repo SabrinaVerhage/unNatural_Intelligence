@@ -5,6 +5,10 @@ const cors = require('cors')
 const fs = require('fs');
 const path = require('path');
 const Dirty = require('dirty');
+const Replicate = require("replicate");
+const replicate = new Replicate({
+  auth: process.env.REPLICATE_API_TOKEN,
+});
 
 const PORT = process.env.PORT || 3000;
 const { v4: uuidv4 } = require('uuid');
@@ -213,12 +217,43 @@ app.post('/api/verify-image', async (req, res) => {
   }
 });
 
+app.post('/api/generate-image', async (req, res) => {
+  const { base64Image } = req.body;
 
-// Serve main page
+  if (!base64Image) {
+    return res.status(400).json({ error: 'Missing base64 image data' });
+  }
+
+  try {
+    const inputImage = `data:image/png;base64,${base64Image}`;
+    
+    const output = await replicate.run(
+      "sabrinaverhage/lichen-01:45c30012484b14332f27a30a4239a69793c99fa99f4483e5aaa9ca657ae881ef", // Replace with your chosen model
+      {
+        input: {
+          image: inputImage,
+          prompt: "Closeup photograph of lichen growing on a tree bark but with cute eyes LCHNYS",
+        },
+      }
+    );
+
+    console.log(output[0].url());
+
+    const imageUrl = output[0].url(); // this is a string
+
+    res.json({ output: imageUrl }); // send only the string back
+
+  } catch (err) {
+    console.error("Replicate error:", err);
+    res.status(500).json({ error: 'Image generation failed' });
+  }
+});
+
+
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
-});
+}); 
