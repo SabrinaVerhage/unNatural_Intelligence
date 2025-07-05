@@ -1,6 +1,7 @@
+//map.js
+
 // Replace with your Mapbox token
 mapboxgl.accessToken = 'pk.eyJ1Ijoic3J2ZXJoYWdlIiwiYSI6ImNtYnMzNm9qdzAybjUyanNlMXlhczdrMGUifQ.ZHIcBM7xpHAdreoJJFWKCQ';
-
 
 //SETUP --- DECLARING VARIABLES 
 let appMode = 'view'; // or 'new' or 'gallery'
@@ -581,9 +582,17 @@ foundBtn.addEventListener('click', () => {
     window.storedScrollPosition = infoLayout.scrollTop;
   }
 
+
+  // 🧼 Clean up old photo view
+  canvas.style.display = 'none';
+  video.style.display = 'block';
+  confirmUI.classList.add('hidden');
+
+  // ✨ Show camera container
   cameraContainer.classList.remove('hidden');
   cameraContainer.classList.add('fade-in');
 
+  // 📷 Start fresh camera stream
   navigator.mediaDevices.getUserMedia({
     video: { facingMode: { exact: "environment" } }
   })
@@ -597,6 +606,7 @@ foundBtn.addEventListener('click', () => {
 });
 
 snap.addEventListener('click', () => {
+  // Capture image to canvas
   const context = canvas.getContext('2d');
   canvas.width = video.videoWidth;
   canvas.height = video.videoHeight;
@@ -608,14 +618,52 @@ snap.addEventListener('click', () => {
   // Show the still image
   video.style.display = 'none';
   canvas.style.display = 'block';
-  confirmUI.classList.remove('hidden');
 
   // Stop the video stream to "freeze" the view
   if (video.srcObject) {
     video.srcObject.getTracks().forEach(track => track.stop());
   }
 
+  setTimeout(() => {
+    confirmUI.classList.remove('hidden');
+    document.getElementById('camera-confirm-label').classList.remove('hidden');
+  }, 300);
+});
 
+// Add touch event handlers for visual feedback
+snap.addEventListener('touchstart', (e) => {
+  e.preventDefault(); // Prevent scrolling and zoom
+  snap.classList.add('pressed');
+  console.log('Touch started'); // Debug
+}, { passive: false });
+
+snap.addEventListener('touchend', (e) => {
+  setTimeout(() => {
+    snap.classList.remove('pressed');
+    console.log('Touch ended'); // Debug
+  }, 150); // Keep the effect for a moment
+});
+
+snap.addEventListener('touchcancel', () => {
+  snap.classList.remove('pressed');
+  console.log('Touch cancelled'); // Debug
+});
+
+// Also handle mouse events for desktop
+snap.addEventListener('mousedown', (e) => {
+  snap.classList.add('pressed');
+  console.log('Mouse down'); // Debug
+});
+
+snap.addEventListener('mouseup', () => {
+  setTimeout(() => {
+    snap.classList.remove('pressed');
+    console.log('Mouse up'); // Debug
+  }, 150);
+});
+
+snap.addEventListener('mouseleave', () => {
+  snap.classList.remove('pressed');
 });
 
 confirmBtn.addEventListener('click', async () => {
@@ -652,7 +700,6 @@ confirmBtn.addEventListener('click', async () => {
     });
 
     const data = await verifyRes.json();
-    thinkingOverlay.classList.add('hidden');
 
     const result = data.result.trim().toLowerCase();
 
@@ -660,6 +707,16 @@ confirmBtn.addEventListener('click', async () => {
       // 🎉 Confirmed match
       markLichenAsFound(lichenId);
 
+      const thinkingText = document.getElementById('thinking-text');
+
+      // Fade out the current text
+      thinkingText.classList.add('fade-out');
+
+      setTimeout(() => {
+        thinkingText.innerHTML = "waking up<br/>(un)natural intelligence...";
+        thinkingText.classList.remove('fade-out');
+        thinkingText.classList.add('fade-in');
+      }, 1500); // Matches CSS fade-out duration
 
       // 👇 Call Replicate to generate transformed image
       const genRes = await fetch('/api/generate-image', {
@@ -677,10 +734,14 @@ confirmBtn.addEventListener('click', async () => {
       localStorage.setItem('genLichenImage', genData.output);
 
       window.location.href = 'chat.html';
+
     } else {
       // ❌ Not a match
+      thinkingOverlay.classList.add('hidden');
       alert("Hmm... this doesn't look like me. Try again?");
-      retakeBtn.click();
+
+      resetCamera();
+
     }
 
   } catch (err) {
@@ -689,55 +750,31 @@ confirmBtn.addEventListener('click', async () => {
     alert("Something went wrong. Try again?");
   }
 
-  // older below
-  // fetch('/api/verify-image', {
-  //   method: 'POST',
-  //   headers: { 'Content-Type': 'application/json' },
-  //   body: JSON.stringify({
-  //     base64Image: imgData.replace(/^data:image\/png;base64,/, ''),
-  //     expectedImagePath: 'images/lichen01.png'
-  //   })
-  // })
-  //   .then(res => res.json())
-  //   .then(data => {
-  //     thinkingOverlay.classList.add('hidden');
-
-  //     const result = data.result.trim().toLowerCase();
-
-  //     if (result.startsWith("yes")) {
-  //       // 🎉 Confirmed match, go to chat
-  //       window.location.href = 'chat.html';
-  //     } else {
-  //       // ❌ Not a match
-  //       alert("Hmm... this doesn't look like me. Try again?");
-  //       retakeBtn.click(); // Optional: automatically offer retake
-  //     }
-
-  //   })
-  //   .catch(err => {
-  //     console.error("Verification failed:", err);
-  //     alert("Something went wrong. Try again?");
-  //   });
 });
 
-retakeBtn.addEventListener('click', () => {
-  // Hide still and UI
+function resetCamera() {
   canvas.style.display = 'none';
   video.style.display = 'block';
   confirmUI.classList.add('hidden');
 
-  // Restart camera
+  const confirmLabel = document.getElementById('camera-confirm-label');
+  if (confirmLabel) {
+    confirmLabel.classList.add('hidden');
+  }
+
   navigator.mediaDevices.getUserMedia({ 
     video: { facingMode: { exact: "environment" } } 
   })
-    .then(stream => {
-      video.srcObject = stream;
-    })
-    .catch(err => {
-      alert("Unable to access camera.");
-      console.error(err);
-    });
-});
+  .then(stream => {
+    video.srcObject = stream;
+  })
+  .catch(err => {
+    alert("Unable to access camera.");
+    console.error(err);
+  });
+}
+
+retakeBtn.addEventListener('click', resetCamera);
 
 // Close camera and return to info card
 closeCamBtn.addEventListener('click', () => {

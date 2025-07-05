@@ -228,12 +228,23 @@ app.post('/api/generate-image', async (req, res) => {
     const inputImage = `data:image/png;base64,${base64Image}`;
     
     const output = await replicate.run(
-      "sabrinaverhage/lichen-01:45c30012484b14332f27a30a4239a69793c99fa99f4483e5aaa9ca657ae881ef", // Replace with your chosen model
+      "sabrinaverhage/lichen-01:45c30012484b14332f27a30a4239a69793c99fa99f4483e5aaa9ca657ae881ef",
       {
         input: {
           image: inputImage,
           prompt: "Closeup photograph of lichen growing on a tree bark but with cute eyes LCHNYS",
-        },
+          
+          // Your custom variables:
+          prompt_strength: 0.4,
+          guidance_scale: 2.5,
+          num_inference_steps: 35,
+          lora_scale: 1.5,
+
+          // (optional but useful defaults)
+          num_outputs: 1,
+          output_format: "webp",
+          aspect_ratio: "1:1"
+        }
       }
     );
 

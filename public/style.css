@@ -147,6 +147,31 @@ body.landing-page {
   transition: opacity 0.2s ease;
 }
 
+#language-selector {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  z-index: 100;
+}
+
+#lang-btn {
+  background: white;
+  color: black;
+  font-weight: bold;
+  border: none;
+  border-radius: 50px;
+  padding: 8px 16px;
+  font-size: 14px;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+  transition: background 0.3s ease;
+}
+
+#lang-btn:hover {
+  background: #ddd;
+}
+
+
 /* Mobile optimizations for landing page */
 @media (max-width: 768px) {
   .landing-container .content {
@@ -983,21 +1008,60 @@ body.gallery-mode #add-btn {
   font-family: 'Avenir', sans-serif;
 }
 
+#camera-confirm-label {
+  position: absolute;
+  bottom: 150px;
+  width: 70%;
+  margin: 0 auto; 
+  left: 0;
+  right: 0;
+  text-align: center;
+  color: white;
+  font-size: 16px;
+  opacity: 0.6;
+  font-family: 'Avenir', sans-serif;
+  pointer-events: none;
+  z-index: 3; /* higher than canvas/video */
+}
+
 #snap {
   background: white;
   border: 4px solid #d2a2d3;
   border-radius: 50%;
-
   width: 72px;
   height: 72px;
   margin-bottom: 25px;
   cursor: pointer;
   box-shadow: 0 4px 12px rgba(0,0,0,0.4);
-  transition: transform 0.2s ease;
+  transition: all 0.15s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+
+  /* Mobile touch properties */
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
+  touch-action: manipulation;
+  
+  /* Force hardware acceleration */
+  transform: translateZ(0);
+  will-change: transform;
 }
 
-#snap:active {
-  transform: scale(0.95);
+/* Desktop hover effect only */
+@media (hover: hover) and (pointer: fine) {
+  #snap:hover:not(:active):not(.pressed) {
+    transform: scale(1.05);
+    box-shadow: 0 6px 16px rgba(0,0,0,0.5);
+  }
+}
+
+/* Active states for both desktop and mobile */
+#snap:active,
+#snap.pressed {
+  transform: scale(0.75) !important;
+  background: #d2a2d3 !important;
+  border-color: #d2a2d3 !important;
+  /*box-shadow: 0 0 20px rgba(210, 162, 211, 0.8) !important;*/
 }
 
 #canvas {
@@ -1030,7 +1094,7 @@ body.gallery-mode #add-btn {
 
 #confirmation-buttons {
   position: absolute;
-  bottom: 40px;
+  bottom: 45px;
   display: flex;
   justify-content: center;
   gap: 65px;
@@ -1078,6 +1142,19 @@ body.gallery-mode #add-btn {
 
 #thinking-overlay.hidden {
   display: none;
+}
+
+#thinking-text {
+  opacity: 1;
+  transition: opacity 1.5s ease;
+}
+
+#thinking-text.fade-out {
+  opacity: 0;
+}
+
+#thinking-text.fade-in {
+  opacity: 1;
 }
 
 
