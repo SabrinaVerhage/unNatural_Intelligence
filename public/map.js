@@ -606,6 +606,8 @@ foundBtn.addEventListener('click', () => {
 });
 
 snap.addEventListener('click', () => {
+  console.log('Snap clicked - capturing image!');
+  
   // Capture image to canvas
   const context = canvas.getContext('2d');
   canvas.width = video.videoWidth;
@@ -615,50 +617,58 @@ snap.addEventListener('click', () => {
   imgData = canvas.toDataURL('image/png');
   localStorage.setItem('lichenPhoto', imgData);
 
-  // Show the still image
-  video.style.display = 'none';
-  canvas.style.display = 'block';
-
-  // Stop the video stream to "freeze" the view
-  if (video.srcObject) {
-    video.srcObject.getTracks().forEach(track => track.stop());
-  }
-
+  // Wait for button animation
   setTimeout(() => {
-    confirmUI.classList.remove('hidden');
-    document.getElementById('camera-confirm-label').classList.remove('hidden');
-  }, 300);
+    
+    // Show canvas ON TOP of video (don't hide video yet)
+    canvas.style.display = 'block';
+    canvas.style.zIndex = '2'; // Put canvas above video
+    
+    // Stop video stream AFTER canvas is visible
+    setTimeout(() => {
+      if (video.srcObject) {
+        video.srcObject.getTracks().forEach(track => track.stop());
+      }
+      
+      // Now hide video (but canvas is already covering it)
+      video.style.display = 'none';
+      
+      setTimeout(() => {
+        confirmUI.classList.remove('hidden');
+        document.getElementById('camera-confirm-label').classList.remove('hidden');
+      }, 100);
+      
+    }, 50); // Very short delay
+    
+  }, 200);
 });
 
-// Add touch event handlers for visual feedback
+// Visual feedback handlers (these don't interfere with click)
 snap.addEventListener('touchstart', (e) => {
-  e.preventDefault(); // Prevent scrolling and zoom
+  // Don't prevent default! Let the click event fire normally
   snap.classList.add('pressed');
-  console.log('Touch started'); // Debug
-}, { passive: false });
+  console.log('Touch started - visual feedback only');
+}, { passive: true }); // passive: true is important!
 
-snap.addEventListener('touchend', (e) => {
+snap.addEventListener('touchend', () => {
   setTimeout(() => {
     snap.classList.remove('pressed');
-    console.log('Touch ended'); // Debug
-  }, 150); // Keep the effect for a moment
-});
+    console.log('Touch ended - visual feedback only');
+  }, 150);
+}, { passive: true });
 
 snap.addEventListener('touchcancel', () => {
   snap.classList.remove('pressed');
-  console.log('Touch cancelled'); // Debug
-});
+}, { passive: true });
 
-// Also handle mouse events for desktop
-snap.addEventListener('mousedown', (e) => {
+// Desktop visual feedback
+snap.addEventListener('mousedown', () => {
   snap.classList.add('pressed');
-  console.log('Mouse down'); // Debug
 });
 
 snap.addEventListener('mouseup', () => {
   setTimeout(() => {
     snap.classList.remove('pressed');
-    console.log('Mouse up'); // Debug
   }, 150);
 });
 

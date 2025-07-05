@@ -989,7 +989,6 @@ body.gallery-mode #add-btn {
   width: 100%;
   object-fit: cover;
   z-index: 0;
-
 }
 
 
@@ -1072,6 +1071,7 @@ body.gallery-mode #add-btn {
   width: 100%;
   object-fit: cover;
   z-index: 1; /* On top of video, below UI */
+  display: none;
 }
 
 #close-camera {
