@@ -6,7 +6,7 @@ document.querySelectorAll('textarea').forEach(el => {
   });
 });
 
-// Fetch all stored entries
+// Fetch all stored location entries
 fetch('/api/debug/all')
   .then(res => res.json())
   .then(data => {
@@ -24,13 +24,21 @@ fetch('/api/debug/all')
         </div>
 
         <div class="admin-field">
-          <label>Description: 
-            <textarea class="edit-desc">${entry.locationDescription || ''}</textarea>
+          <label>Description (EN): 
+            <textarea class="edit-desc-en">${entry.description?.en || ''}</textarea>
           </label>
         </div>
 
         <div class="admin-field">
-          <label>Location Image URL: <input type="text" value="${entry.locationImage || ''}" class="edit-locimg"></label>
+          <label>Description (NL): 
+            <textarea class="edit-desc-nl">${entry.description?.nl || ''}</textarea>
+          </label>
+        </div>
+
+        <div class="admin-field">
+          <label>Location Images (comma-separated): 
+            <input type="text" value="${(entry.locationImages || []).join(', ')}" class="edit-locimgs">
+          </label>
         </div>
 
         <div class="admin-field">
@@ -38,7 +46,7 @@ fetch('/api/debug/all')
         </div>
 
         <div class="image-row">
-          ${entry.locationImage ? `<img src="${entry.locationImage}" class="admin-thumb">` : ''}
+          ${(entry.locationImages || []).map(img => `<img src="${img}" class="admin-thumb">`).join('')}
           ${entry.lichenImage ? `<img src="${entry.lichenImage}" class="admin-thumb">` : ''}
         </div>
 
@@ -69,19 +77,23 @@ fetch('/api/debug/all')
 
       if (e.target.classList.contains('save-btn')) {
         const nameInput = card.querySelector('.edit-name');
-        const descInput = card.querySelector('.edit-desc');
-        const locImgInput = card.querySelector('.edit-locimg');
+        const descEnInput = card.querySelector('.edit-desc-en');
+        const descNlInput = card.querySelector('.edit-desc-nl');
+        const locImgsInput = card.querySelector('.edit-locimgs');
         const lichImgInput = card.querySelector('.edit-lichimg');
         const personalityInput = card.querySelector('.edit-personality');
 
-        if (!nameInput || !descInput || !locImgInput || !lichImgInput || !personalityInput) {
+        if (!nameInput || !descEnInput || !descNlInput || !locImgsInput || !lichImgInput || !personalityInput) {
           alert("One or more fields are missing in this entry.");
           return;
         }
 
         const name = nameInput.value.trim();
-        const description = descInput.value.trim();
-        const locationImage = locImgInput.value.trim();
+        const description = {
+          en: descEnInput.value.trim(),
+          nl: descNlInput.value.trim()
+        };
+        const locationImages = locImgsInput.value.split(',').map(s => s.trim()).filter(Boolean);
         const lichenImage = lichImgInput.value.trim();
         const personality = personalityInput.value.trim();
 
@@ -90,8 +102,8 @@ fetch('/api/debug/all')
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             name,
-            locationDescription: description,
-            locationImage,
+            description,        
+            locationImages,      
             lichenImage,
             personality
           })
@@ -106,7 +118,50 @@ fetch('/api/debug/all')
 
   });
 
-document.getElementById('download-data').addEventListener('click', () => {
+
+// Fetch user session data
+fetch('/api/debug/sessions')
+  .then(res => res.json())
+  .then(sessions => {
+    const sessionContainer = document.getElementById('sessions');
+
+    Object.entries(sessions).forEach(([sessionId, data]) => {
+      const div = document.createElement('div');
+      div.className = 'admin-session';
+
+      div.innerHTML = `
+        <h3>🧠 Session: <code>${sessionId}</code></h3>
+        <div class="session-json">${JSON.stringify(data, null, 2)}</div>
+        <div class="session-actions">
+          <button class="delete-session" data-id="${sessionId}">🗑 Delete Session</button>
+        </div>
+      `;
+
+      sessionContainer.appendChild(div);
+    });
+
+    // Handle delete clicks
+    sessionContainer.addEventListener('click', e => {
+      if (e.target.classList.contains('delete-session')) {
+        const id = e.target.getAttribute('data-id');
+        fetch(`/api/user-session/${id}`, { method: 'DELETE' })
+          .then(() => location.reload());
+      }
+    });
+  });
+
+
+document.getElementById('toggle-locations').addEventListener('click', () => {
+  const entries = document.getElementById('entries');
+  entries.classList.toggle('collapsed');
+});
+
+document.getElementById('toggle-sessions').addEventListener('click', () => {
+  const sessions = document.getElementById('sessions');
+  sessions.classList.toggle('collapsed');
+});
+
+document.getElementById('download-locations').addEventListener('click', () => {
   fetch('/api/debug/all')
     .then(res => res.json())
     .then(data => {
@@ -114,9 +169,24 @@ document.getElementById('download-data').addEventListener('click', () => {
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = 'lichen-data.json';
+      a.download = 'lichen-locations.json';
       a.click();
       URL.revokeObjectURL(url);
     });
 });
+
+document.getElementById('download-sessions').addEventListener('click', () => {
+  fetch('/api/debug/sessions')
+    .then(res => res.json())
+    .then(data => {
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'user-sessions.json';
+      a.click();
+      URL.revokeObjectURL(url);
+    });
+});
+
 

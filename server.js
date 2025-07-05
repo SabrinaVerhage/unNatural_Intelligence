@@ -31,7 +31,9 @@ app.use(express.json({ limit: '5mb' }));
 app.use(express.urlencoded({ extended: true, limit: '5mb' }));
 
 // Init Dirty DB
+// two databases now *shrug
 const db = new Dirty('locations.db');
+const sessiondb = new Dirty('sessions.db');
 
 // API route to return all locations
 app.get('/api/locations', (req, res) => {
@@ -44,7 +46,14 @@ app.get('/api/locations', (req, res) => {
 
 // API route to handle new location submissions
 app.post('/api/locations', (req, res) => {
-  const { name = ' ', coordinates, locationDescription, locationImage, lichenImage } = req.body;
+  const {
+    name = ' ',
+    coordinates,
+    description = {}, // 👈 updated: expect { en: "...", nl: "..." }
+    locationImages = [],
+    lichenImage
+  } = req.body;
+
 
   if (!coordinates) {
     return res.status(400).json({ error: 'Missing coordinates' });
@@ -58,7 +67,7 @@ app.post('/api/locations', (req, res) => {
     coordinates,
     locationDescription,
     locationImage,
-    lichenImage,
+    lichenImages,
     personality: "Unknown for now",
     conversationHistory: []
   });
@@ -114,8 +123,6 @@ app.put('/api/locations/:id', (req, res) => {
   res.json({ success: true });
 });
 
-
-
 // API route to handle OpenAI stufffs
 const OpenAI = require('openai');
 
@@ -125,6 +132,7 @@ const openai = new OpenAI({
 
 app.post('/api/chat', async (req, res) => {
   const { base64Image, lichenID, messages } = req.body;
+  const userLang = req.headers['x-lang'] || 'en';
 
   if (!messages || !Array.isArray(messages)) {
     return res.status(400).json({ error: 'Missing messages array' });
@@ -139,7 +147,11 @@ app.post('/api/chat', async (req, res) => {
     return res.status(404).json({ error: 'Lichen personality not found' });
   }
 
-  const systemPrompt = lichen.personality;
+  // ✨ Append language instruction if needed
+  let systemPrompt = lichen.personality;
+  if (userLang === 'nl') {
+    systemPrompt += "\n\nLet op: spreek en antwoord in het Nederlands; een lichen heet een 'korstmos' in het Nederlands.";
+  }
 
   try {
     const completion = await openai.chat.completions.create({
@@ -161,6 +173,7 @@ app.post('/api/chat', async (req, res) => {
   }
 });
 
+// VISION API
 app.post('/api/verify-image', async (req, res) => {
   const { base64Image, expectedImagePath } = req.body;
 
@@ -217,6 +230,7 @@ app.post('/api/verify-image', async (req, res) => {
   }
 });
 
+// REPLICATE IMAGE GENERATION
 app.post('/api/generate-image', async (req, res) => {
   const { base64Image } = req.body;
 
@@ -260,6 +274,64 @@ app.post('/api/generate-image', async (req, res) => {
   }
 });
 
+// Save data to a user's session
+app.post('/api/user-session/:userSessionId', (req, res) => {
+  const sessionId = req.params.userSessionId;
+  const { lichenID, generatedImage, chatMessage } = req.body;
+
+  if (!lichenID) {
+    return res.status(400).json({ error: 'Missing lichenID' });
+  }
+
+  const session = sessiondb.get(sessionId) || {};
+  const existing = session[lichenID] || {
+    lichenID,
+    generatedImage: null,
+    chatHistory: [],
+    timestamp: Date.now()
+  };
+
+  // Update generated image if provided
+  if (generatedImage) {
+    existing.generatedImage = generatedImage;
+    existing.timestamp = Date.now(); // refresh timestamp
+  }
+
+  // Add chat message if provided
+  if (chatMessage && chatMessage.role && chatMessage.content) {
+    existing.chatHistory = existing.chatHistory || [];
+    existing.chatHistory.push(chatMessage);
+  }
+
+  session[lichenID] = existing;
+  sessiondb.set(sessionId, session);
+
+  res.json({ success: true });
+});
+
+
+// Get user session
+app.get('/api/user-session/:sessionId', (req, res) => {
+  const sessionId = req.params.sessionId;
+  const sessionData = sessiondb.get(sessionId) || {};
+  res.json(sessionData);
+});
+
+// Admin debug session data
+app.get('/api/debug/sessions', (req, res) => {
+  const sessions = {};
+  sessiondb.forEach((key, value) => {
+    sessions[key] = value;
+  });
+  res.json(sessions);
+});
+
+// Admin delete user session data
+app.delete('/api/user-session/:sessionId', (req, res) => {
+  const sessionId = req.params.sessionId;
+  sessiondb.rm(sessionId);
+  res.json({ success: true });
+});
 
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));

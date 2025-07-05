@@ -61,6 +61,16 @@ window.addEventListener('orientationchange', updateAppHeight);
 window.addEventListener('load', updateAppHeight);
 updateAppHeight(); // initial call
 
+
+//**********USER SESSION ID**********
+let userSessionId = localStorage.getItem('userSessionId');
+if (!userSessionId) {
+  userSessionId = crypto.randomUUID();
+  localStorage.setItem('userSessionId', userSessionId);
+}
+console.log("User session ID:", userSessionId);
+
+
 //INSTRUCTIONS OVERLAY
 helpBtn.addEventListener('click', () => {
   instrScreen.classList.add('visible');
@@ -139,13 +149,23 @@ function openNewCard(data) {
 
 function loadCardData(data) {
   console.log('Loading card data:', data);
+  // console.log('description:', data.description);
 
-  // Load the data from the db
+  const currentLang = localStorage.getItem("lang") || "en";
+
+  // Title
   infoName.textContent = data.name || '';
-  infoDesc.textContent = data.locationDescription || '';
+
+  // Description (multilingual fallback to English)
+  const desc =
+    typeof data.description === 'object'
+      ? data.description[currentLang] || data.description.en
+      : data.description;
+
+  infoDesc.textContent = desc || '';
   toggleBtn.textContent = 'more info...';
 
-  // Load all images at once - no complex loading logic
+  // Lichen image (still a single string)
   if (data.lichenImage) {
     infoImage.src = data.lichenImage;
     infoImage.style.opacity = '1';
@@ -154,13 +174,20 @@ function loadCardData(data) {
     infoImage.src = '';
     infoImage.style.opacity = '0';
   }
-  
-  if (data.locationImage) {
-    infoLocImage.src = data.locationImage;
+
+  // Location image(s) — now supports an array
+  const locImages = data.locationImages || [];
+  if (locImages.length > 0) {
+    infoLocImage.src = locImages[0]; // only show the first one for now
+  } else {
+    infoLocImage.src = '';
   }
-  
+
+  // Lichen close-up image — fallback to same as lichenImage
   if (data.lichenImage) {
     infoCloseUpImage.src = data.lichenImage;
+  } else {
+    infoCloseUpImage.src = '';
   }
 }
 
@@ -244,10 +271,6 @@ infoImage.addEventListener('click', () => {
   }
 });
 
-// CLOSE INFO CARD
-// closeInfoBtn.addEventListener('click', () => {
-//   closeInfoCard();
-// });
 
 // MAIN MAP STUFF
 const map = new mapboxgl.Map({
@@ -647,13 +670,13 @@ snap.addEventListener('click', () => {
 snap.addEventListener('touchstart', (e) => {
   // Don't prevent default! Let the click event fire normally
   snap.classList.add('pressed');
-  console.log('Touch started - visual feedback only');
+  // console.log('Touch started - visual feedback only');
 }, { passive: true }); // passive: true is important!
 
 snap.addEventListener('touchend', () => {
   setTimeout(() => {
     snap.classList.remove('pressed');
-    console.log('Touch ended - visual feedback only');
+    // console.log('Touch ended - visual feedback only');
   }, 150);
 }, { passive: true });
 
@@ -742,6 +765,19 @@ confirmBtn.addEventListener('click', async () => {
 
       // Store the result or display it
       localStorage.setItem('genLichenImage', genData.output);
+
+      const userSessionId = localStorage.getItem('userSessionId');
+
+      if (userSessionId) {
+        await fetch(`/api/user-session/${userSessionId}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            lichenID: lichenId,
+            generatedImage: genData.output
+          })
+        });
+      }
 
       window.location.href = 'chat.html';
 

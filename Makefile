@@ -5,11 +5,11 @@ restart:
 	ssh root@unnatural-intelligence.com -t 'systemctl restart unnatural-intelligence.service'
 
 sync-files:
-	ls | grep -v -E '.git|node_modules|sync-files' | xargs ./sync-files
+	ls | grep -v -E '.git|node_modules|sync-files' | xargs ./sync-files .env
 
 sync-files-from-scratch:
 	ssh root@unnatural-intelligence.com -t 'rm -rf app/unNatural_Intelligence; mkdir app/unNatural_Intelligence'
-	ls | grep -v -E '.git|node_modules|sync-files' | xargs ./sync-files
+	ls | grep -v -E '.git|node_modules|sync-files' | xargs ./sync-files .env
 
 sync-and-restart: sync-files restart
 

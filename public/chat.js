@@ -7,6 +7,8 @@ const lichenPhoto = document.getElementById('lichen-photo');
 const chatContainer = document.querySelector('.chat-container');
 const backButton = document.querySelector('.back-button');
 
+let chatHistory = [];
+
 // GETTING FULLSCREEN RIGHT
 function updateAppHeight() {
   const vh = window.innerHeight * 0.01;
@@ -43,34 +45,60 @@ if (!lichenId) {
   window.location.href = "/"; // redirect
 }
 
-// Generate or load persistent session ID
-let sessionId = localStorage.getItem('lichenSessionId');
-console.log("user session ID: " + sessionId);
-if (!sessionId) {
-  sessionId = crypto.randomUUID();
-  localStorage.setItem('lichenSessionId', sessionId);
+// Load user ID from localStorage
+const userSessionId = localStorage.getItem('userSessionId');
+
+
+async function saveChatMessage(role, content) {
+  if (!content || !role || !userSessionId || !lichenId) return;
+
+  // ✨ Update local chat history
+  chatHistory.push({ role, content });
+
+  try {
+    await fetch(`/api/user-session/${userSessionId}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        lichenID: lichenId,
+        chatMessage: { role, content }
+      })
+    });
+  } catch (err) {
+    console.warn("Failed to save chat message:", err);
+  }
 }
 
 async function initChat() {
   try {
     console.log('Initializing chat...');
     
-    // Try to load lichen data first
+    // Load lichen data first
     const res = await fetch(`/api/lichen/${lichenId}`);
     const data = await res.json();
     console.log("Loaded lichen data:", data);
 
-    // Check for a generated image override
+    // Load any saved chat history for this lichen
+    const sessionRes = await fetch(`/api/user-session/${userSessionId}`);
+    const sessionData = await sessionRes.json();
+    const lichenEntry = sessionData[lichenId];
+
+    chatHistory = lichenEntry?.chatHistory || [];
+
+    // Check for a generated image 
     const generatedImage = localStorage.getItem('genLichenImage');
     
     // Choose which image to use: generated if present, else original lichen, else location
-    const lichenImageToUse = generatedImage || data.lichenImage;
+    const lichenImageToUse = lichenEntry?.generatedImage || data.lichenImage;
 
     if (lichenImageToUse) {
       lichenPhoto.src = lichenImageToUse;
-      lichenPhoto.classList.add('has-image'); // hide emoji fallback
+      lichenPhoto.classList.add('has-image');
     }
-    
+
+    const lang = localStorage.getItem('lang') || 'en';
+    const initialMessage = lang === 'nl' ? "Hallo daar!" : "Hi there!";
+
     // Start the intro animation
     startIntroAnimation();
     
@@ -82,11 +110,15 @@ async function initChat() {
     // Send initial API call and show first message
     const response = await fetch('/api/chat', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 
+        'Content-Type': 'application/json',
+        'x-lang': localStorage.getItem('lang') || 'en'
+      },
       body: JSON.stringify({
         lichenID: lichenId,
         messages: [
-          { role: 'user', content: "Hi there, nice to meet you." }
+          ...chatHistory,
+          { role: 'user', content: initialMessage }
         ]
       })
     });
@@ -99,6 +131,9 @@ async function initChat() {
       showMessage(reply, 'lichen');
     }, 5500);
 
+    await saveChatMessage('user', initialMessage);
+    await saveChatMessage('assistant', reply);
+
   } catch (err) {
     console.error("Initialization error:", err);
     removeTypingBubble();
@@ -108,18 +143,18 @@ async function initChat() {
 
 
 function startIntroAnimation() {
-  console.log('Starting intro animation...');
+  // console.log('Starting intro animation...');
   
   // After 1 second, start the shrink animation
   setTimeout(() => {
     lichenPhoto.classList.add('shrink');
-    console.log('Photo should be shrinking...');
+    // console.log('Photo should be shrinking...');
     
     // After animation completes, show chat interface
     setTimeout(() => {
       chatContainer.classList.add('visible');
       backButton.classList.add('visible');
-      console.log('Chat interface should be visible...');
+      // console.log('Chat interface should be visible...');
     }, 1600); // Wait for animation to complete
     
   }, 1000);
@@ -165,6 +200,8 @@ chatForm.addEventListener('submit', async (e) => {
   showMessage(message, 'user');
   userInput.value = '';
 
+  await saveChatMessage('user', message);
+
   showTypingBubble();
 
   // Get OpenAI response
@@ -177,6 +214,7 @@ chatForm.addEventListener('submit', async (e) => {
       body: JSON.stringify({
         lichenID: lichenId,
         messages: [
+          ...chatHistory,
           { role: 'user', content: message }
         ]
       })
@@ -187,10 +225,22 @@ chatForm.addEventListener('submit', async (e) => {
 
     removeTypingBubble();
     showMessage(reply, 'lichen');
+
+    await saveChatMessage('assistant', reply);
+
+    //////////////////DEBUG
+    // 🧠 Re-fetch session to log updated history
+    const sessionRes = await fetch(`/api/user-session/${userSessionId}`);
+    const sessionData = await sessionRes.json();
+    const updatedHistory = sessionData[lichenId]?.chatHistory || [];
+
+    console.log("Updated chat history for this lichen:", updatedHistory);
+
   } catch (err) {
     console.error(err);
     removeTypingBubble();
     showMessage("Hmm... I couldn't quite hear you. Maybe try again?", 'lichen');
+
   }
 });
 

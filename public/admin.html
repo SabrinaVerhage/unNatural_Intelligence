@@ -7,11 +7,23 @@
 <body>
   
   <div id="admin-wrapper">
-    <h1>Lichen Map Admin</h1>
+    <h1>(un)natural intelligence admin</h1>
 
-    <button id="download-data">⬇️ Download All Data</button>
+    <button id="download-locations">⬇️ Download Lichen Data</button>
+    <button id="download-sessions">⬇️ Download User Sessions</button>
 
-    <div id="entries"></div>
+    <h2>
+      📍 Lichen Locations 
+      <button id="toggle-locations">–</button>
+    </h2>
+    <div id="entries" class="collapsible"></div>
+
+    <h2>
+      🧠 User Sessions 
+      <button id="toggle-sessions">–</button>
+    </h2>
+    <div id="sessions" class="collapsible"></div>
+
   </div>
   <script src="admin.js"></script>
 </body>

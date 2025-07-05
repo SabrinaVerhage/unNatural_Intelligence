@@ -1511,4 +1511,52 @@ body.gallery-mode #add-btn {
   object-fit: cover;
 }
 
+.collapsible.collapsed {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.4s ease;
+}
+
+.collapsible {
+  transition: max-height 0.4s ease;
+}
+
+.admin-session {
+  background: #f3f3f3;
+  border: 1px solid #ccc;
+  padding: 12px;
+  margin: 8px 0;
+  border-radius: 6px;
+  font-family: monospace;
+  font-size: 14px;
+  line-height: 1.4;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.admin-session h3 {
+  font-size: 14px;
+  font-weight: bold;
+  margin: 0;
+  word-break: break-word;
+}
+
+.session-json {
+  max-height: 200px;
+  overflow: auto;
+  background: #fff;
+  border: 1px solid #ddd;
+  padding: 8px;
+  border-radius: 4px;
+  white-space: pre-wrap;
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.session-actions {
+  margin-top: 4px;
+  display: flex;
+  justify-content: flex-end;
+}
 
