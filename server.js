@@ -65,9 +65,9 @@ app.post('/api/locations', (req, res) => {
     id,
     name,
     coordinates,
-    locationDescription,
-    locationImage,
-    lichenImages,
+    description,          
+    locationImages,    
+    lichenImage,          
     personality: "Unknown for now",
     conversationHistory: []
   });
@@ -130,6 +130,29 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY
 });
 
+function safeImageUrl(label, rawPath) {
+  if (!rawPath) {
+    console.warn(`[chat] No image provided for ${label}`);
+    return null;
+  }
+
+  if (rawPath.startsWith('http')) {
+    return rawPath;
+  }
+
+  const base = 'https://www.unnatural-intelligence.com';
+  const cleanPath = rawPath.replace(/^\/+/, '');
+  const fullUrl = `${base}/${cleanPath}`;
+
+  // Optionally test if URL points to an image file
+  if (!/\.(jpg|jpeg|png|webp)$/i.test(fullUrl)) {
+    console.warn(`[chat] Suspect image format for ${label}: ${fullUrl}`);
+  }
+
+  return fullUrl;
+}
+
+
 app.post('/api/chat', async (req, res) => {
   const { lichenID, messages } = req.body;
   const sessionId = req.headers['x-session-id'];
@@ -158,27 +181,37 @@ app.post('/api/chat', async (req, res) => {
   const sessionData = sessiondb.get(sessionId) || {};
   const generatedImage = sessionData[lichenID]?.generatedImage || null;
 
+  const fullOriginalUrl = safeImageUrl('originalImage', lichen.lichenImage);
+  const fullGeneratedUrl = safeImageUrl('generatedImage', sessionData[lichenID]?.generatedImage);
+
   // ✨ Setup System prompt: append language instruction if needed
   let systemPrompt = lichen.personality;
   if (userLang === 'nl') {
     systemPrompt += "\n\nLet op: spreek en antwoord in het Nederlands; een lichen heet een 'korstmos' in het Nederlands.";
   }
 
+  const locationText = lichen.locationDescription
+  ? `This is where you live: ${lichen.locationDescription.trim()}`
+  : "This is where you live.";
+
   // 🧠 Add visual memory as the very first user message
   const visualContext = {
     role: 'user',
     content: [
-      { type: 'text', text: 'This is what you look like in 2 images: your original body, and one with eyes :) thats the one people see when they chat to you.' },
-      ...(originalImage
+      { 
+        type: 'text', 
+        text: `${locationText} This is what you look like in 2 images: your original body, and one with eyes :) thats the one people see when they chat to you.`
+      },
+      ...(fullOriginalUrl
         ? [{
             type: 'image_url',
-            image_url: { url: originalImage }
+            image_url: { url: fullOriginalUrl }
           }]
         : []),
-      ...(generatedImage
+      ...(fullGeneratedUrl
         ? [{
             type: 'image_url',
-            image_url: { url: generatedImage }
+            image_url: { url: fullGeneratedUrl }
           }]
         : [])
     ]

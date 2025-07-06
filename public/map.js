@@ -8,7 +8,7 @@ let appMode = 'view'; // or 'new' or 'gallery'
 let selectedCoords = null;
 let currentActiveMarker = null;
 
-const ALLOW_NEW_LICHEN = false;
+const ALLOW_NEW_LICHEN = true;
 
 const instrScreen = document.getElementById('instr-screen');
 const backToMap = document.getElementById('instr-back');
@@ -29,10 +29,13 @@ const infoCloseUpImage = document.getElementById('info-closeup-image');
 const formContainer = document.getElementById('form-container');
 const addBtn = document.getElementById('add-btn'); 
 const backHomeBtn = document.getElementById('back-home');
-backHomeBtn.addEventListener('click', () => {
-  window.location.href = 'index.html';
-});
-
+if (ALLOW_NEW_LICHEN) {
+  backHomeBtn.style.display = 'none';
+} else {
+  backHomeBtn.addEventListener('click', () => {
+    window.location.href = 'index.html';
+  });
+}
 
 if (!ALLOW_NEW_LICHEN) {
   document.getElementById('add-btn').style.display = 'none';
@@ -295,7 +298,7 @@ infoImage.addEventListener('click', () => {
 const mbMap = new mapboxgl.Map({
   container: 'map',
   style: 'mapbox://styles/mapbox/streets-v12',
-  center: [4.89, 52.37],
+  center: [7.076, 53.053], //Artphy
   zoom: 12,
   pitch: 0, 
   bearing: 0     
@@ -476,9 +479,11 @@ document.getElementById('location-form').addEventListener('submit', (e) => {
 
   console.log("Sending:", {
     coordinates: selectedCoords,
-    locationDescription: desc,
-    locationImage: locImg,
-    lichenImage: lichImg
+    description: {
+      en: desc
+    },
+    locationImages: locImg ? [locImg] : [],
+    lichenImage: lichImg || null
   });
 
   fetch('/api/locations', {
@@ -486,9 +491,12 @@ document.getElementById('location-form').addEventListener('submit', (e) => {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
       coordinates: selectedCoords,
-      locationDescription: desc,      
-      locationImage: locImg,
-      lichenImage: lichImg
+      description: {
+        en: desc
+        // you could optionally add nl: descNl here if you had one
+      },
+      locationImages: locImg ? [locImg] : [],
+      lichenImage: lichImg || null
     })
   })
   .then(res => res.json())
