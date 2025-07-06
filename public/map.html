@@ -7,50 +7,56 @@
   <link href="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.css" rel="stylesheet" />
   <link rel="stylesheet" href="style.css">
 
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/2.0.3/p5.min.js"></script>
+  <script src="p5-layer.js"></script>
+
 </head>
 <body>
+
 
   <!-- Instructions Overlay -->
   <div id="instr-screen">
     <button id="instr-close">✕</button>
     <div class="instr-wrapper">
-      <h1>How to experience</h1>
+      <h1 data-i18n="howToExperience">How to experience</h1>
 
       <div class="instr-step step-1">
         <!-- <h3>Step 1</h3> -->
-        <h2>Open Your Eyes</h2>
+        <h2 data-i18n="instr-title-1">Open Your Eyes</h2>
         <img src="images/step1.png" alt="Step 1 illustration" />
-        <p>Open the map. Lichens grow on trees, stones, walls — in places you've walked past without noticing. Until now. Once you spot one, you’ll start seeing them everywhere.</p>
+        <p data-i18n="instr-desc-1">Open the map. Lichens grow on trees, stones, walls — in places you've walked past without noticing. Until now. Once you spot one, you’ll start seeing them everywhere.</p>
       </div>
 
       <div class="instr-step step-2">
         <!-- <h3>Step 2</h3> -->
-        <h2>Find (un)naturally intelligent lichen</h2>
+        <h2 data-i18n="instr-title-2">Find (un)naturally intelligent lichen</h2>
         <img src="images/step2.png" alt="Step 2 illustration" />
-        <p>Find a lichen and capture it to begin a chat. Each has a unique voice, shaped by its relationships.</p>
+        <p data-i18n="instr-desc-2">Find a lichen and capture it to begin a chat. Each has a unique voice, shaped by its relationships.</p>
       </div>
 
       <div class="instr-step step-3">
         <!-- <h3>Step 3</h3> -->
-        <h2>Collect and connect</h2>
+        <h2 data-i18n="instr-title-3">Collect and connect</h2>
         <img src="images/step3.png" alt="Step 3 illustration" />
-        <p>Every lichen you meet becomes part of your network. You’re exploring how intelligence grows — between organisms, and between you and the system.</p>
+        <p data-i18n="instr-desc-3">Every lichen you meet becomes part of your network. You’re exploring how intelligence grows — between organisms, and between you and the system.</p>
       </div>
 
       <div class="instr-step step-4">
         <!-- <h3>Step 4</h3> -->
-        <h2>Become (un)naturally intelligent</h2>
+        <h2 data-i18n="instr-title-4">Become (un)naturally intelligent</h2>
         <img src="images/step4.png" alt="Step 4 illustration" />
-        <p>No brain, no plan — just patterns, feedback, connection. Maybe knowing is simply tuning in.</p>
+        <p data-i18n="instr-desc-4">No brain, no plan — just patterns, feedback, connection. Maybe knowing is simply tuning in.</p>
       </div>
 
-      <div id="instr-back">CONTINUE<br/>TO MAP</div>
+      <div id="instr-back" data-i18n="instr-back">CONTINUE<br/>TO MAP</div>
     </div>
   </div>
 
   <!-- Map View -->
   <h1>unNatural Intelligence</h1>
   <div id="map"></div>
+  <canvas id="connectionCanvas"></canvas>
+  
 
   <!-- New Entry Form -->
   <div id="form-container">
@@ -77,11 +83,13 @@
   </div>
 
   <!-- Top UI Buttons -->
+  <button id="back-home" title="Back to home">←</button>
+
   <div id="top-ui">
     <button id="add-btn">＋</button>
     <div class="top-buttons">
-      <button id="help-btn">instructions</button>
-      <button id="gallery-btn">your (un)natural intelligence</button>
+      <button id="help-btn" data-i18n="help-btn">instructions</button>
+      <button id="gallery-btn" data-i18n="gallery-btn">your (un)natural intelligence</button>
     </div>
   </div>
 
@@ -91,7 +99,7 @@
     <div class="info-image-wrapper">
       <!-- <button id="close-info">✕</button> -->
       <img id="info-image" />
-      <button id="toggle-info">more info...</button>
+      <button id="toggle-info" data-i18n="toggle-info">more info...</button>
     </div>
 
     <div class="info-layout">
@@ -102,7 +110,7 @@
         <img class="info-info-image" id="info-closeup-image" />
         <!-- <p class="meta" id="info-personality"></p> -->
       </div>
-      <button id="found-button">FOUND<br/>YOU!</button>
+      <button id="found-button" data-i18n="found-button">FOUND<br/>YOU!</button>
     </div>
   </div>
 
@@ -115,7 +123,7 @@
     <video id="video" autoplay playsinline></video>
 
     <div id="camera-bottom">
-      <p id="camera-label">align the lichen and tap to capture</p>
+      <p id="camera-label" data-i18n="camera-label">align the lichen and tap to capture</p>
       <button id="snap"></button>
     </div>
 
@@ -124,17 +132,18 @@
       <button id="retake-photo">✕</button>
       <button id="confirm-photo">→</button>
     </div>
-    <div id="camera-confirm-label" class="hidden">
+    <div id="camera-confirm-label" data-i18n="camera-confirm-label" class="hidden">
       make sure the lichen is centered and clearly visible
     </div>
     <button id="close-camera">←</button>
   </div>
 
   <div id="thinking-overlay" class="hidden">
-    <p id="thinking-text">...searching for signs of<br/>(un)natural intelligence</p>
+    <p id="thinking-text" data-i18n="thinking-text">...searching for signs of<br/>(un)natural intelligence</p>
   </div>
 
   <script src="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.js"></script>
   <script src="map.js"></script>
+  <script src="lang-toggle.js"></script>
 </body>
 </html>

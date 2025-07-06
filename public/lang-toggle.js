@@ -13,14 +13,27 @@ document.addEventListener("DOMContentLoaded", () => {
   function applyLanguage(lang) {
     currentLang = lang;
     localStorage.setItem("lang", lang);
-    langBtn.textContent = lang === "en" ? "NL" : "EN";
+    
+    if (langBtn) {
+      langBtn.textContent = lang === "en" ? "NL" : "EN";
+    }
 
+    // Set inner HTML text
     for (const el of document.querySelectorAll("[data-i18n]")) {
       const key = el.getAttribute("data-i18n");
       if (translations[lang] && translations[lang][key]) {
         el.innerHTML = translations[lang][key];
       }
     }
+
+    // Set placeholder attributes
+    for (const el of document.querySelectorAll("[data-i18n-placeholder]")) {
+      const key = el.getAttribute("data-i18n-placeholder");
+      if (translations[lang] && translations[lang][key]) {
+        el.placeholder = translations[lang][key];
+      }
+    }
+
   }
 
   function loadTranslations() {
@@ -35,10 +48,12 @@ document.addEventListener("DOMContentLoaded", () => {
       });
   }
 
-  langBtn.addEventListener("click", () => {
-    const nextLang = currentLang === "en" ? "nl" : "en";
-    applyLanguage(nextLang);
-  });
+  if (langBtn) {
+    langBtn.addEventListener("click", () => {
+      const nextLang = currentLang === "en" ? "nl" : "en";
+      applyLanguage(nextLang);
+    });
+  }
 
   loadTranslations();
 });

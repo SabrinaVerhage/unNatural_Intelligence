@@ -25,7 +25,7 @@ html {
 /***************** LANDING PAGE STYLES *****************/
 
 body.landing-page {
-  background: #000;
+  background: #131B1E;
   color: white;
   overflow-y: auto;
   overflow-x: hidden;
@@ -38,7 +38,7 @@ body.landing-page {
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  padding: 0;
+  padding: 0px 14px 0px; /* top right bottom */;
   box-sizing: border-box;
   background-size: cover;
   background-position: center;
@@ -73,11 +73,13 @@ body.landing-page {
   position: relative;
   z-index: 3;
   min-height: 100vh; /* Changed to min-height */
-  display: flex;
+  /*display: flex;*/
   flex-direction: column;
-  justify-content: space-between;
-  padding: 40px 24px 60px;
+  /*justify-content: space-between;*/
+  gap: 0px; 
   box-sizing: border-box;
+  /*padding-bottom: 0px;*/
+  padding: 0px;
 }
 
 .tagline {
@@ -99,8 +101,8 @@ body.landing-page {
   justify-content: center;
   align-items: flex-start;
   margin-top: -100px;
+  margin-bottom: 20px;
 
-  padding: 60px 0; /* Added padding for better spacing when scrolling */
 }
 
 .main-title {
@@ -119,29 +121,30 @@ body.landing-page {
   font-size: 14px;
   font-weight: 500;
   margin-top: 10px;
+  margin-bottom: 30px;
   display: inline-block;
   align-self: flex-end;
 }
 
 .description {
+  padding: 0px;
+  margin: 7px 0px 7px;
   max-width: 500px;
   font-size: 16px;
   line-height: 1.3;
-  margin-top: 24px;
   text-shadow: 0 1px 3px rgba(0,0,0,0.7);
 }
 
 .get-started {
-  font-weight: bold;
-  font-size: 20px;
+  display: block;
   text-align: right;
+
+  font-weight: bold;
+  /*font-size: 20px;*/
   color: white;
   cursor: pointer;
   text-decoration: none;
 
-  margin-top: 40px;
-  margin-right: 0;
-  align-self: flex-end;
   line-height: 1.2;
 
   transition: opacity 0.2s ease;
@@ -155,20 +158,25 @@ body.landing-page {
 }
 
 #lang-btn {
-  background: white;
+  width: 64px;
+  height: 64px;
+  background: rgba(200, 200, 200, 0.5); /* translucent white */
   color: black;
+  font-size: 20px;
   font-weight: bold;
+  border-radius: 50%;
   border: none;
-  border-radius: 50px;
-  padding: 8px 16px;
-  font-size: 14px;
+  backdrop-filter: blur(8px); /* softens what’s behind */
+  -webkit-backdrop-filter: blur(8px);
   cursor: pointer;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
   transition: background 0.3s ease;
 }
 
 #lang-btn:hover {
-  background: #ddd;
+  background: rgba(200, 200, 200, 0.5); /* translucent white */
 }
 
 
@@ -180,7 +188,6 @@ body.landing-page {
 
   .landing-container .get-started {
     font-size: 24px;
-    padding: 20px 24px;
     margin-top: 20px;
     align-self: stretch; /* Full width on mobile */
   }
@@ -311,14 +318,14 @@ body.landing-page {
 
 #instr-back {
   font-weight: bold;
-  font-size: 20px;
+  font-size: 24px;
   text-align: right;
   color: white;
   cursor: pointer;
 
-  margin-top: 40px;
+  margin-top: 80px;
   margin-right: 0;
-  padding-bottom: 20px;
+  padding-bottom: 15px;
   align-self: flex-end;
   line-height: 1.2;
 
@@ -339,6 +346,23 @@ body.landing-page {
   /*transition: background-color 0.5s ease; */*/
 }
 
+#connectionCanvas {
+  position: absolute;
+  opacity: 0;
+  transition: opacity 0.4s ease;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;  /* Let clicks pass through */
+  z-index: 2; /* Just above map, below UI */
+}
+
+.mapboxgl-marker {
+  position: absolute;
+  z-index: 10; /* ABOVE canvas */
+}
+
 .lichen-marker {
   width: 42px;
   height: 42px;
@@ -356,12 +380,35 @@ body.landing-page {
 .lichen-marker.active .lichen-inner {
   background-color: #dea8df;
   background-image: none !important;
-  /*border: 2px solid white;*/
 }
 
 .lichen-marker.found-marker {
   width: 56px;
   height: 56px;
+  border: 3px solid #dea8df; 
+  outline: 2px solid #dea8df;
+  animation: outlinePulse 2s ease-in-out infinite;
+}
+
+@keyframes outlinePulse {
+  0%, 100% {
+    outline-width: 2px;
+    outline-color: #dea8df;
+  }
+  50% {
+    outline-width: 8px;
+    outline-color: #f2d1f3;
+  }
+}
+
+.lichen-marker.found-marker .lichen-inner {
+  transform: scale(1.5);
+}
+
+body.gallery-mode .lichen-marker {
+  width: 100px;
+  height: 100px;
+  transition: width 0.3s ease, height 0.3s ease;
 }
 
 .lichen-inner {
@@ -371,6 +418,29 @@ body.landing-page {
   background-size: cover;
   background-position: center;
   transition: transform 0.3s ease;
+}
+
+#back-home {
+  position: fixed;
+  top: 20px;
+  left: 20px;
+  width: 64px;
+  height: 64px;
+  background-color: transparent;
+  color: black;
+  font-size: 40px;
+  border-radius: 50%;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 10001;
+  transition: background 0.3s ease;
+}
+
+#back-home:hover {
+  background-color: #dea8df;
 }
 
 #top-ui {
@@ -783,6 +853,10 @@ body.gallery-mode #map {
   width: 100%;
 }
 
+body.gallery-mode #connectionCanvas {
+  opacity: 1;
+}
+
 body.gallery-mode .mapboxgl-canvas {
   opacity: 0;
   transition: background-color 0.5s ease, opacity 0.5s ease;
@@ -797,6 +871,10 @@ body.gallery-mode .mapboxgl-ctrl-geolocate,
 body.gallery-mode .mapboxgl-ctrl-logo,
 body.gallery-mode .mapboxgl-ctrl-attrib {
   display: none !important;
+}
+
+body.gallery-mode .custom-geolocate {
+  display: none;
 }
 
 
@@ -872,11 +950,6 @@ body.gallery-mode .mapboxgl-ctrl-attrib {
 }
 
 
-body.gallery-mode .lichen-marker {
-  transform: scale(1.2);
-  border: 2px solid white;
-  /*box-shadow: 0 0 8px rgba(255, 255, 255, 0.3);*/
-}
 
 body.gallery-mode #top-ui,
 body.gallery-mode #add-btn {

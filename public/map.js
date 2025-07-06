@@ -7,7 +7,6 @@ mapboxgl.accessToken = 'pk.eyJ1Ijoic3J2ZXJoYWdlIiwiYSI6ImNtYnMzNm9qdzAybjUyanNlM
 let appMode = 'view'; // or 'new' or 'gallery'
 let selectedCoords = null;
 let currentActiveMarker = null;
-let userMarker = null;
 
 const ALLOW_NEW_LICHEN = false;
 
@@ -29,6 +28,11 @@ const infoCloseUpImage = document.getElementById('info-closeup-image');
 
 const formContainer = document.getElementById('form-container');
 const addBtn = document.getElementById('add-btn'); 
+const backHomeBtn = document.getElementById('back-home');
+backHomeBtn.addEventListener('click', () => {
+  window.location.href = 'index.html';
+});
+
 
 if (!ALLOW_NEW_LICHEN) {
   document.getElementById('add-btn').style.display = 'none';
@@ -117,34 +121,38 @@ function slideDownAndShowNew(data) {
 }
 
 function showNewCardAfterSlideDown() {
-  // Reset to collapsed state and slide up
-  requestAnimationFrame(() => {
+  // Reset to collapsed state
+  infoCard.classList.remove('expanded');
+  infoCard.classList.add('collapsed');
+
+  // Wait just a bit before showing again
+  setTimeout(() => {
+    infoCard.classList.remove('hidden');
+
     requestAnimationFrame(() => {
-      infoCard.classList.remove('hidden');
-      infoCard.classList.add('visible', 'collapsed');
-      infoCard.classList.remove('expanded');
+      infoCard.classList.add('visible');
     });
-  });
+  }, 20); // 1 frame or ~20ms delay smooths transition
 }
 
 function openNewCard(data) {
   // Ensure clean starting state
   infoCard.classList.remove('visible', 'expanded');
-  infoCard.classList.add('collapsed', 'hidden');
-  
+  infoCard.classList.add('collapsed');
+
   // Load the data
   loadCardData(data);
-  // showCardAfterImageLoad();
 
-  requestAnimationFrame(() => {
-    // Then trigger the animation
+  // Start fresh: remove hidden, then animate up with delay
+  infoCard.classList.add('hidden');
+
+  // Delay just enough for layout to apply
+  setTimeout(() => {
+    infoCard.classList.remove('hidden');
     requestAnimationFrame(() => {
-      infoCard.classList.remove('hidden');
       infoCard.classList.add('visible');
-      // Keep it collapsed for now
     });
-  });
-
+  }, 20); // 20ms allows reflow to settle
 }
 
 function loadCardData(data) {
@@ -165,15 +173,22 @@ function loadCardData(data) {
   infoDesc.textContent = desc || '';
   toggleBtn.textContent = 'more info...';
 
-  // Lichen image (still a single string)
-  if (data.lichenImage) {
+  // generated image if found
+  const lichenID = data.id;
+  const foundList = JSON.parse(localStorage.getItem('foundLichens')) || [];
+  const isFound = foundList.includes(lichenID);
+  const generatedImage = sessionGeneratedMap[lichenID];
+
+  if (isFound && generatedImage) {
+    infoImage.src = generatedImage;
+  } else if (data.lichenImage) {
     infoImage.src = data.lichenImage;
-    infoImage.style.opacity = '1';
-    infoImage.classList.add('loaded');
   } else {
     infoImage.src = '';
-    infoImage.style.opacity = '0';
   }
+
+  infoImage.style.opacity = infoImage.src ? '1' : '0';
+  infoImage.classList.toggle('loaded', !!infoImage.src);
 
   // Location image(s) — now supports an array
   const locImages = data.locationImages || [];
@@ -189,14 +204,6 @@ function loadCardData(data) {
   } else {
     infoCloseUpImage.src = '';
   }
-}
-
-function showCardAfterImageLoad() {
-  // Remove hidden and make visible in collapsed state
-  setTimeout(() => {
-    infoCard.classList.remove('hidden');
-    infoCard.classList.add('visible', 'collapsed');
-  }, 150);
 }
 
 function closeInfoCard() {
@@ -273,7 +280,7 @@ infoImage.addEventListener('click', () => {
 
 
 // MAIN MAP STUFF
-const map = new mapboxgl.Map({
+const mbMap = new mapboxgl.Map({
   container: 'map',
   style: 'mapbox://styles/mapbox/streets-v12',
   center: [4.89, 52.37],
@@ -281,23 +288,24 @@ const map = new mapboxgl.Map({
   pitch: 0, 
   bearing: 0     
 });
+window.mbMap = mbMap;
 
 // Disable all tilt & rotation inputs
-map.setMaxPitch(0);
-map.setMinPitch(0);
-map.touchPitch.disable();
-map.dragRotate.disable();
-map.touchZoomRotate.disableRotation();    
+mbMap.setMaxPitch(0);
+mbMap.setMinPitch(0);
+mbMap.touchPitch.disable();
+mbMap.dragRotate.disable();
+mbMap.touchZoomRotate.disableRotation();    
 
 window.addEventListener('focus', () => {
   window.scrollTo(0, 0);
 });              
 
 //the plus and minus button
-// map.addControl(new mapboxgl.NavigationControl());
+// mbMap.addControl(new mapboxgl.NavigationControl());
 
 // 🧭 Add navigation control (includes compass)
-// map.addControl(new mapboxgl.NavigationControl({ showCompass: true }), 'top-right');
+// mbMap.addControl(new mapboxgl.NavigationControl({ showCompass: true }), 'top-right');
 
 const geolocateControl = new mapboxgl.GeolocateControl({
   positionOptions: { enableHighAccuracy: true },
@@ -306,11 +314,8 @@ const geolocateControl = new mapboxgl.GeolocateControl({
 });
 
 // 📍 Add geolocate control (shows "locate me" button)
-// map.addControl(geolocateControl, 'bottom-right');
-// map.addControl(geolocateControl);
-
-// Add the hidden geolocate control (for functionality)
-map.addControl(geolocateControl);
+// mbMap.addControl(geolocateControl, 'bottom-right');
+mbMap.addControl(geolocateControl);
 
 // Create custom crosshair button
 const customGeolocateBtn = document.createElement('button');
@@ -322,56 +327,68 @@ customGeolocateBtn.addEventListener('click', () => {
 // Add to map container
 document.getElementById('map').appendChild(customGeolocateBtn);
 
-map.on('load', () => {
+mbMap.on('load', () => {
   geolocateControl.trigger();
 });
 
+geolocateControl.on('geolocate', position => {
+  const { latitude, longitude } = position.coords;
+  window.userLatLng = { lat: latitude, lng: longitude };
+});
+
+
+let sessionGeneratedMap = {};
+
 // Load locations from server
-fetch('/api/locations')
+fetch(`/api/user-session/${userSessionId}`)
+  .then(res => res.json())
+  .then(sessionData => {
+    // STEP 1: Build lookup map from the object
+    Object.keys(sessionData).forEach(lichenID => {
+      const entry = sessionData[lichenID];
+      if (entry.generatedImage) {
+        sessionGeneratedMap[lichenID] = entry.generatedImage;
+      }
+    });
+
+    // STEP 2: Now load the locations and apply the logic
+    return fetch('/api/locations');
+  })
   .then(res => res.json())
   .then(locations => {
     locations.forEach(loc => {
-
       const el = document.createElement('div');
       el.className = 'lichen-marker';
+      el.dataset.lng = loc.coordinates[0];
+      el.dataset.lat = loc.coordinates[1];
       el.dataset.lichenId = loc.id;
 
       const inner = document.createElement('div');
       inner.className = 'lichen-inner';
-      inner.style.backgroundImage = `url('${loc.lichenImage}')`;
-
-      el.appendChild(inner);
 
       const foundList = JSON.parse(localStorage.getItem('foundLichens')) || [];
-      if (foundList.includes(loc.id)) {
-        el.classList.add('found-marker'); 
+      const isFound = foundList.includes(loc.id);
+      const generatedImage = sessionGeneratedMap[loc.id]; // Uses ID string directly
+
+      if (isFound) {
+        el.classList.add('found-marker');
       }
+
+      const imageToUse = (isFound && generatedImage)
+        ? generatedImage
+        : loc.lichenImage;
+
+      inner.style.backgroundImage = `url('${imageToUse}')`;
+      el.appendChild(inner);
 
       const marker = new mapboxgl.Marker(el)
         .setLngLat(loc.coordinates)
-        .addTo(map);
+        .addTo(mbMap);
 
       el.addEventListener('click', () => {
-        if (document.body.classList.contains('gallery-mode')) {
-          // GALLERY MODE
-          // Make marker grow briefly on click
-          const inner = el.querySelector('.lichen-inner');
-          inner.style.transform = 'scale(1.6)';
-
-          setTimeout(() => {
-            inner.style.transform = 'scale(1.2)';
-          }, 300);
-          return;
-        }
-
         if (appMode !== 'view') return;
+        if (el.classList.contains('active')) return;
 
-        if (el.classList.contains('active')) {
-          return; // Do nothing if marker is already active
-        }
-
-        // NORMAL MODE
-        // Handle active marker styling
         if (currentActiveMarker) {
           currentActiveMarker.classList.remove('active');
         }
@@ -379,16 +396,13 @@ fetch('/api/locations')
         currentActiveMarker = el;
 
         localStorage.setItem('selectedLichenID', loc.id);
-        console.log(loc.id);
-
-        // Show info card
         showInfoCard(loc);
-
       });
-
-
+    });
+  })
+  .catch(err => {
+    console.error("Error loading session or locations:", err);
   });
-});
 
 function markLichenAsFound(id) {
   let foundList = JSON.parse(localStorage.getItem('foundLichens')) || [];
@@ -412,7 +426,7 @@ function updateMarkerVisibility() {
 }
 
 //behavior when you click on the map
-map.on('click', (e) => {
+mbMap.on('click', (e) => {
   const clickedEl = e.originalEvent.target;
 
   // If you clicked a marker, do nothing here!
@@ -482,7 +496,7 @@ document.getElementById('location-form').addEventListener('submit', (e) => {
       // Add the new marker instantly
       const marker = new mapboxgl.Marker(el)
         .setLngLat(selectedCoords)
-        .addTo(map);
+        .addTo(mbMap);
 
       el.addEventListener('click', () => {
         if (appMode !== 'view') return;
@@ -567,6 +581,8 @@ galleryBtn.addEventListener('click', () => {
   updateMarkerVisibility();
   appMode = 'gallery'; 
 
+  window.loop?.(); // ✅ start drawing p5.js
+
   if (infoCard.classList.contains('visible')) {
     closeInfoCard();
   }
@@ -581,6 +597,8 @@ exitGallery.addEventListener('click', () => {
   
   updateMarkerVisibility();
   appMode = 'view'; 
+
+  window.noLoop?.(); // ✅ stop drawing p5.js
 });
 
 //////////
@@ -764,7 +782,8 @@ confirmBtn.addEventListener('click', async () => {
       console.log("Generated image URL:", genData.output);
 
       // Store the result or display it
-      localStorage.setItem('genLichenImage', genData.output);
+      //don't need this anymore though right
+      // localStorage.setItem('genLichenImage', genData.output);
 
       const userSessionId = localStorage.getItem('userSessionId');
 
@@ -850,3 +869,4 @@ closeCamBtn.addEventListener('click', () => {
   }
 
 });
+
