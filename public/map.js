@@ -191,12 +191,24 @@ function loadCardData(data) {
   infoImage.classList.toggle('loaded', !!infoImage.src);
 
   // Location image(s) — now supports an array
+  // const locImages = data.locationImages || [];
+  // if (locImages.length > 0) {
+  //   infoLocImage.src = locImages[0]; // only show the first one for now
+  // } else {
+  //   infoLocImage.src = '';
+  // }
+
+  const galleryContainer = document.getElementById('info-location-images');
+  galleryContainer.innerHTML = ''; // clear previous images
+
   const locImages = data.locationImages || [];
-  if (locImages.length > 0) {
-    infoLocImage.src = locImages[0]; // only show the first one for now
-  } else {
-    infoLocImage.src = '';
-  }
+  locImages.forEach(src => {
+    const img = document.createElement('img');
+    img.src = src;
+    img.className = 'info-info-image'; // reuse your CSS class
+    galleryContainer.appendChild(img);
+  });
+
 
   // Lichen close-up image — fallback to same as lichenImage
   if (data.lichenImage) {

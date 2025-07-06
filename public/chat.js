@@ -112,6 +112,7 @@ async function initChat() {
       method: 'POST',
       headers: { 
         'Content-Type': 'application/json',
+        'x-session-id': userSessionId,
         'x-lang': localStorage.getItem('lang') || 'en'
       },
       body: JSON.stringify({
@@ -210,6 +211,8 @@ chatForm.addEventListener('submit', async (e) => {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        'x-session-id': userSessionId,
+        'x-lang': localStorage.getItem('lang') || 'en'
       },
       body: JSON.stringify({
         lichenID: lichenId,
@@ -230,11 +233,11 @@ chatForm.addEventListener('submit', async (e) => {
 
     //////////////////DEBUG
     // 🧠 Re-fetch session to log updated history
-    const sessionRes = await fetch(`/api/user-session/${userSessionId}`);
-    const sessionData = await sessionRes.json();
-    const updatedHistory = sessionData[lichenId]?.chatHistory || [];
+    // const sessionRes = await fetch(`/api/user-session/${userSessionId}`);
+    // const sessionData = await sessionRes.json();
+    // const updatedHistory = sessionData[lichenId]?.chatHistory || [];
 
-    console.log("Updated chat history for this lichen:", updatedHistory);
+    // console.log("Updated chat history for this lichen:", updatedHistory);
 
   } catch (err) {
     console.error(err);

@@ -726,6 +726,18 @@ body.gallery-mode .lichen-marker {
   margin-top: 0;
 }
 
+.info-image-gallery {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.info-image-gallery img {
+  max-width: 100%;
+  /*border-radius: 12px;*/
+  object-fit: cover;
+}
+
 .info-image-wrapper {
   position: relative;
   width: 100%;

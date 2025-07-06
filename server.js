@@ -131,7 +131,8 @@ const openai = new OpenAI({
 });
 
 app.post('/api/chat', async (req, res) => {
-  const { base64Image, lichenID, messages } = req.body;
+  const { lichenID, messages } = req.body;
+  const sessionId = req.headers['x-session-id'];
   const userLang = req.headers['x-lang'] || 'en';
 
   if (!messages || !Array.isArray(messages)) {
@@ -142,23 +143,55 @@ app.post('/api/chat', async (req, res) => {
     return res.status(400).json({ error: 'Missing lichenID' });
   }
 
+  if (!sessionId) {
+    return res.status(400).json({ error: 'Missing session ID' });
+  }
+
   const lichen = db.get(lichenID);
   if (!lichen || !lichen.personality) {
     return res.status(404).json({ error: 'Lichen personality not found' });
   }
 
-  // ✨ Append language instruction if needed
+  // 🌍 Pull both images from the DB
+  const originalImage = lichen.lichenImage || null;
+
+  const sessionData = sessiondb.get(sessionId) || {};
+  const generatedImage = sessionData[lichenID]?.generatedImage || null;
+
+  // ✨ Setup System prompt: append language instruction if needed
   let systemPrompt = lichen.personality;
   if (userLang === 'nl') {
     systemPrompt += "\n\nLet op: spreek en antwoord in het Nederlands; een lichen heet een 'korstmos' in het Nederlands.";
   }
+
+  // 🧠 Add visual memory as the very first user message
+  const visualContext = {
+    role: 'user',
+    content: [
+      { type: 'text', text: 'This is what you look like in 2 images: your original body, and one with eyes :) thats the one people see when they chat to you.' },
+      ...(originalImage
+        ? [{
+            type: 'image_url',
+            image_url: { url: originalImage }
+          }]
+        : []),
+      ...(generatedImage
+        ? [{
+            type: 'image_url',
+            image_url: { url: generatedImage }
+          }]
+        : [])
+    ]
+  };
+
+  const formattedMessages = [visualContext, ...messages];
 
   try {
     const completion = await openai.chat.completions.create({
       model: 'gpt-4o',
       messages: [
         { role: 'system', content: systemPrompt },
-        ...messages
+        ...formattedMessages
       ]
     });
 
