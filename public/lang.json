@@ -17,11 +17,14 @@
     "instr-desc-3" : "Every lichen you meet becomes part of your network. You’re exploring how intelligence grows — between organisms, and between you and the system.",
     "instr-desc-4" : "No brain, no plan — just patterns, feedback, connection. Maybe knowing is simply tuning in.",
     "instr-back" : "CONTINUE<br/>TO MAP",
-    "toggle-info" : "more info...",
-    "found-button" : "FOUND<br/>YOU!",
-    "camera-label" : "align the lichen and tap to capture",
+    "toggle-info" : "Find this lichen...",
+    "toggle-info-2" : "return",
+    "toggle-text" : "This page shows where to find the lichen. Once you’ve found it, hit 'found it' and take a photo. That’s how the conversation begins...",
+    "found-button" : "FOUND<br/>IT!",
+    "camera-label" : "move in close — the details matter<br/>tap to capture",
     "camera-confirm-label" : "make sure the lichen is centered and clearly visible",
     "thinking-text" : "...searching for signs of<br/>(un)natural intelligence",
+    "waking-text" : "waking up<br/>(un)natural intelligence...",
     "chatPrompt": "How are you feeling today?"
   },
   "nl": {
@@ -42,11 +45,14 @@
     "instr-desc-3" : "Elke korstmos die je ontmoet wordt deel van jouw netwerk. Je verkent hoe intelligentie kan ontstaan — tussen organismen, tussen jou en het systeem.",
     "instr-desc-4" : "Geen brein, geen plan — alleen patronen, terugkoppeling, verbinding. Misschien is weten gewoon: afstemmen.",
     "instr-back" : "TERUG<br/>NAAR KAART",
-    "toggle-info" : "meer informatie...",
+    "toggle-info" : "Zoek deze korstmos...",
+    "toggle-info-2" : "terug",
+    "toggle-text" : "Op deze pagina zie je waar de korstmos zich bevindt. Als je het hebt gevonden, klik op 'gevonden' en maak een foto. Zo begint het gesprek...",
     "found-button" : "GEVONDEN!",
-    "camera-label" : "test",
-    "camera-confirm-label" : "test",
-    "thinking-text" : "test",
+    "camera-label" : "kom dichtbij — de details doen ertoe<br/>klik om vast te leggen",
+    "camera-confirm-label" : "staat de korstmost goed in het midden?",
+    "thinking-text" : "...aan het zoeken naar<br/>(un)natural intelligence",
+    "waking-text" : "(un)natural intelligence<br/>aan het wakker maken...",
     "chatPrompt": "Hoe gaat het met jou?"
   }
 }

@@ -8,7 +8,8 @@ let appMode = 'view'; // or 'new' or 'gallery'
 let selectedCoords = null;
 let currentActiveMarker = null;
 
-const ALLOW_NEW_LICHEN = true;
+const ALLOW_NEW_LICHEN = false;
+const hiddenLichenIDs = ["6fe3b904-6b7b-4d80-acb6-c9ada47c3f7c", "342eac15-bc27-4bb5-82c0-a25f76687936", "97f3bc8b-25eb-42d0-9f74-e3f141d4513d", "a484e1d1-17e6-4f65-ae1d-f07aaef08efe"]; 
 
 const instrScreen = document.getElementById('instr-screen');
 const backToMap = document.getElementById('instr-back');
@@ -33,7 +34,16 @@ if (ALLOW_NEW_LICHEN) {
   backHomeBtn.style.display = 'none';
 } else {
   backHomeBtn.addEventListener('click', () => {
-    window.location.href = 'index.html';
+    // window.location.href = 'index.html';
+
+    const isInfoVisible = infoCard.classList.contains('visible');
+
+    if (isInfoVisible) {
+      closeInfoCard(); // ✨ just close the card if it's open
+    } else {
+      window.location.href = 'index.html'; // otherwise go back home
+    }
+
   });
 }
 
@@ -174,7 +184,12 @@ function loadCardData(data) {
       : data.description;
 
   infoDesc.textContent = desc || '';
-  toggleBtn.textContent = 'more info...';
+
+  const toggleMore = window.translations?.[currentLang]?.["toggle-info"] || "more info...";
+  const toggleLess = window.translations?.[currentLang]?.["toggle-info-2"] || "less info...";
+  toggleBtn.dataset.more = toggleMore;
+  toggleBtn.dataset.less = toggleLess;
+  toggleBtn.textContent = toggleMore;
 
   // generated image if found
   const lichenID = data.id;
@@ -271,12 +286,12 @@ function toggleInfoCard() {
     // Expanding
     infoCard.classList.remove('collapsed');
     infoCard.classList.add('expanded');
-    toggleBtn.textContent = 'less info...';
+    toggleBtn.textContent = toggleBtn.dataset.less;
   } else {
     // Collapsing
     infoCard.classList.remove('expanded');
     infoCard.classList.add('collapsed');
-    toggleBtn.textContent = 'more info...';
+    toggleBtn.textContent = toggleBtn.dataset.more;
   }
 }
 
@@ -299,7 +314,7 @@ const mbMap = new mapboxgl.Map({
   container: 'map',
   style: 'mapbox://styles/mapbox/streets-v12',
   center: [7.076, 53.053], //Artphy
-  zoom: 12,
+  zoom: 19,
   pitch: 0, 
   bearing: 0     
 });
@@ -784,7 +799,11 @@ confirmBtn.addEventListener('click', async () => {
       thinkingText.classList.add('fade-out');
 
       setTimeout(() => {
-        thinkingText.innerHTML = "waking up<br/>(un)natural intelligence...";
+        const currentLang = localStorage.getItem("lang") || "en";
+        const wakingText = window.translations?.[currentLang]?.["waking-text"] || "waking up<br/>(un)natural intelligence...";
+        thinkingText.innerHTML = wakingText;
+        // thinkingText.innerHTML = "waking up<br/>(un)natural intelligence...";
+        
         thinkingText.classList.remove('fade-out');
         thinkingText.classList.add('fade-in');
       }, 1500); // Matches CSS fade-out duration

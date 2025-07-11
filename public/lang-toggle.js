@@ -41,6 +41,7 @@ document.addEventListener("DOMContentLoaded", () => {
       .then(res => res.json())
       .then(data => {
         translations = data;
+        window.translations = data; //expose globally
         applyLanguage(currentLang);
       })
       .catch(err => {

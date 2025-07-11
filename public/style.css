@@ -436,12 +436,12 @@ body.gallery-mode .lichen-marker {
   justify-content: center;
   cursor: pointer;
   z-index: 10001;
-  transition: background 0.3s ease;
+  /*transition: background 0.3s ease;*/
 }
 
-#back-home:hover {
+/*#back-home:hover {
   background-color: #dea8df;
-}
+}*/
 
 #top-ui {
   position: fixed;
@@ -899,6 +899,11 @@ body.gallery-mode .custom-geolocate {
 /* Hide the default geolocate button */
 .mapboxgl-ctrl-geolocate {
   display: none !important;
+}
+
+.mapboxgl-user-location-dot,
+.mapboxgl-user-location-accuracy-circle {
+  pointer-events: none !important;
 }
 
 /* Custom crosshair button */
