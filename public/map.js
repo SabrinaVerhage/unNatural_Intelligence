@@ -415,6 +415,10 @@ fetch(`/api/user-session/${userSessionId}`)
         .setLngLat(loc.coordinates)
         .addTo(mbMap);
 
+      if (hiddenLichenIDs.includes(loc.id)) {
+        el.style.display = 'none';
+      }
+
       el.addEventListener('click', () => {
         if (appMode !== 'view') return;
         if (el.classList.contains('active')) return;
@@ -450,7 +454,9 @@ function updateMarkerVisibility() {
     const id = marker.dataset.lichenId;
     if (!id) return;
 
-    const shouldShow = !isGallery || found.includes(id);
+    const isHidden = hiddenLichenIDs.includes(id);
+    const shouldShow = !isHidden && (!isGallery || found.includes(id));
+
     marker.style.display = shouldShow ? 'block' : 'none';
   });
 }
